@@ -1,33 +1,33 @@
 using System;
 using UnityEngine;
-using Unity.Netcode; // 引入 Netcode 命名空間
+using Unity.Netcode;
 
-public class FairyThrowerNetwork : NetworkBehaviour // 改為繼承 NetworkBehaviour
+public class FairyThrowerNetwork : NetworkBehaviour
 {
     public enum SpawnOriginMode { UseTransform, MidpointOfTwo, VolumeBox }
     public enum DirectionMode { UseForwardOfRef, AveragePlayersForward, TowardsPlayersCentroid, RandomConeAroundRef }
 
     [Header("Spawn Origin")]
-    public SpawnOriginMode spawnOriginMode = SpawnOriginMode.VolumeBox; // 預設改為 VolumeBox 以符合你的描述
+    public SpawnOriginMode spawnOriginMode = SpawnOriginMode.VolumeBox;
     public Transform origin;
     
-    // 注意：在連線遊戲中，直接拉場景中的 Player Transform 可能會失效
-    // 建議之後透過 NetworkManager 獲取玩家清單，這裡先保留變數
+    // 預留給未來擴充玩家追蹤用
     public Transform playerA; 
     public Transform playerB;
 
-    [Tooltip("請將 CenterEyeAnchor 底下的 Volume 拉到這裡")]
+    [Tooltip("請將 CenterEyeAnchor 底下的 Volume 拉到這裡 (務必勾選 Is Trigger)")]
     public BoxCollider spawnVolume;
 
     [Header("Direction")]
     public DirectionMode directionMode = DirectionMode.RandomConeAroundRef;
-    public Transform forwardRef; // 這裡拉 ThrowDirectionRef
+    [Tooltip("請拉入 ThrowDirectionRef，藍色軸向(Z)即為發射中心方向")]
+    public Transform forwardRef; 
 
     [Range(0f, 45f)]
     public float angleDeg = 12f;
 
     [Header("Speed / Spin")]
-    public Vector2 speedRange = new Vector2(1.5f, 3f); // MR 空間較小，建議速度稍微調慢測試
+    public Vector2 speedRange = new Vector2(1.5f, 3f);
     public Vector2 randomAngularVelRangeDeg = new Vector2(0f, 360f);
 
     [Header("Weighted Prefabs")]
@@ -35,7 +35,7 @@ public class FairyThrowerNetwork : NetworkBehaviour // 改為繼承 NetworkBehav
 
     [Header("Auto Spawn")]
     public bool autoSpawn = false;
-    [Min(0f)] public float spawnsPerSecond = 0.5f; // 頻率也不要太高
+    [Min(0f)] public float spawnsPerSecond = 0.5f;
 
     [Header("Debug / Keys")]
     public bool drawGizmos = true;
@@ -67,18 +67,31 @@ public class FairyThrowerNetwork : NetworkBehaviour // 改為繼承 NetworkBehav
         Vector3 dir = GetDirection(pos);
         float v = UnityEngine.Random.Range(speedRange.x, speedRange.y);
 
-        // 2. 生成物件 (此時還只是 Server 本地的物件)
-        var go = Instantiate(pf, pos, Quaternion.identity);
+        // 2. 生成物件 (Server 本地)
+        var go = Instantiate(pf, pos, Quaternion.LookRotation(dir)); // 順便設定面向
+        var netObj = go.GetComponent<NetworkObject>();
+
+        // =================================================================
+        // 【關鍵修正 1】先 Spawn，建立連線與 NetworkRigidbody 的關聯
+        // =================================================================
+        if (netObj != null)
+        {
+            netObj.Spawn(); 
+        }
 
         // 3. 設定物理屬性
         var rb = go.GetComponent<Rigidbody>();
         if(rb == null) rb = go.AddComponent<Rigidbody>();
         
+        // Server 強制設定物理參數 (確保 Prefab 設定錯誤時也能修正)
         rb.useGravity = false;
         rb.drag = 0f; 
         rb.interpolation = RigidbodyInterpolation.Interpolate;
-        
-        // 設定速度
+        rb.isKinematic = false; // 確保不是 Kinematic
+
+        // =================================================================
+        // 【關鍵修正 2】在 Spawn 之後給予速度，NetworkRigidbody 才能同步給 Client
+        // =================================================================
         rb.velocity = dir * v;
 
         if (randomAngularVelRangeDeg.y > 0f)
@@ -87,25 +100,13 @@ public class FairyThrowerNetwork : NetworkBehaviour // 改為繼承 NetworkBehav
             float w = UnityEngine.Random.Range(randomAngularVelRangeDeg.x, randomAngularVelRangeDeg.y);
             rb.angularVelocity = axis * Mathf.Deg2Rad * w;
         }
-
-        // 4. 【關鍵步驟】告訴 Netcode 這個物件要同步給所有人
-        // 注意：Prefab 上必須已經掛好 NetworkObject 組件
-        var netObj = go.GetComponent<NetworkObject>();
-        if (netObj != null)
-        {
-            netObj.Spawn(); 
-        }
     }
-
-    // --------- 以下邏輯保持不變 (省略部分與原本相同，直接複製原本的計算邏輯即可) ----------
-    // 請將原本 GetSpawnPosition, GetDirection, PickPrefabByWeight, RandomDirectionInCone 複製過來
-    // 為了版面整潔，我這裡只列出關鍵修改，計算數學部分與你原本的代碼完全通用。
 
     Vector3 GetSpawnPosition()
     {
-        // (保留你原本的邏輯)
         if (spawnOriginMode == SpawnOriginMode.VolumeBox && spawnVolume != null)
         {
+            // 修正：使用 TransformPoint 確保支援 Volume 的旋轉與縮放
             Vector3 c = spawnVolume.center;
             Vector3 e = spawnVolume.size * 0.5f;
             Vector3 local = new Vector3(
@@ -120,20 +121,23 @@ public class FairyThrowerNetwork : NetworkBehaviour // 改為繼承 NetworkBehav
 
     Vector3 GetDirection(Vector3 spawnPos)
     {
-        // (保留你原本的邏輯)
+        // 如果沒有拉 forwardRef，就用程式碼掛載物件的 forward
         Vector3 fwdRef = (forwardRef != null ? forwardRef.forward : transform.forward);
+
         if (directionMode == DirectionMode.RandomConeAroundRef)
              return RandomDirectionInCone(fwdRef, angleDeg);
+        
         return fwdRef.normalized;
     }
 
     GameObject PickPrefabByWeight()
     {
-        // (保留你原本的邏輯，稍微簡化 Random)
         float sum = 0f;
         foreach (var e in weightedPrefabs) if (e?.prefab != null) sum += e.weight;
+        
         float r = UnityEngine.Random.Range(0, sum);
         float acc = 0f;
+        
         foreach (var e in weightedPrefabs)
         {
             if (e?.prefab == null) continue;
@@ -143,12 +147,30 @@ public class FairyThrowerNetwork : NetworkBehaviour // 改為繼承 NetworkBehav
         return weightedPrefabs.Length > 0 ? weightedPrefabs[0].prefab : null;
     }
     
+    // =================================================================
+    // 【關鍵修正 3】正確的圓錐散射數學計算
+    // =================================================================
     public static Vector3 RandomDirectionInCone(Vector3 forward, float angleDeg)
     {
-        // 直接複製你原本的數學函式
-        // ... (同你原本的代碼)
-        // 這裡為了省空間先不重複貼上，請直接用你原本的
-        return Vector3.forward; // 替換
+        if (angleDeg <= 0) return forward.normalized;
+
+        // 1. 在圓錐角度內隨機取一個偏角
+        float deviation = UnityEngine.Random.Range(0f, angleDeg);
+        
+        // 2. 在 0-360 度隨機取一個旋轉角 (像輪盤一樣)
+        float roll = UnityEngine.Random.Range(0f, 360f);
+
+        // 3. 數學計算：
+        // 先建立一個「面向正前方」的旋轉
+        Quaternion lookRot = Quaternion.LookRotation(forward.normalized);
+        
+        // 產生偏移：
+        // Quaternion.AngleAxis(roll, Vector3.forward) -> 繞著軸心轉 (滾轉)
+        // Quaternion.AngleAxis(deviation, Vector3.up) -> 往旁邊偏 (俯仰/偏航)
+        Quaternion randomRot = Quaternion.AngleAxis(roll, Vector3.forward) * Quaternion.AngleAxis(deviation, Vector3.up);
+
+        // 組合：基準方向 * 隨機偏移 * 原始 Z 軸
+        return lookRot * randomRot * Vector3.forward;
     }
 
     [Serializable]
@@ -161,11 +183,24 @@ public class FairyThrowerNetwork : NetworkBehaviour // 改為繼承 NetworkBehav
     void OnDrawGizmosSelected()
     {
         if (!drawGizmos) return;
+
+        // 1. 畫出生成框 (黃色)
         Gizmos.color = Color.yellow;
         if (spawnVolume != null)
         {
             Gizmos.matrix = spawnVolume.transform.localToWorldMatrix;
             Gizmos.DrawWireCube(spawnVolume.center, spawnVolume.size);
+            Gizmos.matrix = Matrix4x4.identity; // 復原矩陣
         }
+
+        // 2. 畫出發射方向參考線 (紅色) - 幫助你確認 ThrowDirectionRef 到底指哪裡
+        Gizmos.color = Color.red;
+        Vector3 startPos = (spawnVolume != null) ? spawnVolume.bounds.center : transform.position;
+        Vector3 dir = (forwardRef != null) ? forwardRef.forward : transform.forward;
+        
+        Gizmos.DrawRay(startPos, dir * 2.0f); // 畫一條 2 公尺長的線
+        
+        // 畫個小球在箭頭末端方便看
+        Gizmos.DrawSphere(startPos + dir * 2.0f, 0.05f);
     }
 }
