@@ -30,6 +30,10 @@ public class FairyThrowerNetwork : NetworkBehaviour
     public Vector2 speedRange = new Vector2(1.5f, 3f);
     public Vector2 randomAngularVelRangeDeg = new Vector2(0f, 360f);
 
+    [Header("Size (Scale)")]
+    [Tooltip("隨機大小範圍：X為最小值，Y為最大值 (例如 0.5 ~ 1.5)")]
+    public Vector2 scaleRange = new Vector2(1f, 1f); 
+
     [Header("Weighted Prefabs")]
     public WeightedPrefab[] weightedPrefabs = new WeightedPrefab[6];
 
@@ -69,6 +73,11 @@ public class FairyThrowerNetwork : NetworkBehaviour
 
         // 2. 生成物件 (Server 本地)
         var go = Instantiate(pf, pos, Quaternion.LookRotation(dir)); // 順便設定面向
+        
+        // 設定隨機大小
+        float randomScale = UnityEngine.Random.Range(scaleRange.x, scaleRange.y);
+        go.transform.localScale = Vector3.one * randomScale;
+
         var netObj = go.GetComponent<NetworkObject>();
 
         // =================================================================
@@ -101,7 +110,17 @@ public class FairyThrowerNetwork : NetworkBehaviour
             rb.angularVelocity = axis * Mathf.Deg2Rad * w;
         }
     }
+    // 當這個物件在網路上成功生成(連線成功)時，會自動執行一次
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
 
+        // 如果我是 Server (Host)，我一進遊戲就先丟一隻，不用等計時器
+        if (IsServer) 
+        {
+            ThrowOne();
+        }
+    }
     Vector3 GetSpawnPosition()
     {
         if (spawnOriginMode == SpawnOriginMode.VolumeBox && spawnVolume != null)

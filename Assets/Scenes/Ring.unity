@@ -1633,6 +1633,7 @@ MonoBehaviour:
   angleDeg: 12
   speedRange: {x: 2, y: 2.2}
   randomAngularVelRangeDeg: {x: 30, y: 270}
+  scaleRange: {x: 50, y: 50}
   weightedPrefabs:
   - prefab: {fileID: 3922821349826572773, guid: c457ab5c93a8b8047a8c8e5d82e96b1c, type: 3}
     weight: 1
