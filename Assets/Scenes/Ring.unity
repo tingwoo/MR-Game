@@ -153,7 +153,7 @@ Transform:
   m_LocalScale: {x: 2.225, y: 3.42375, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 632166565}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &44185346
 BoxCollider:
@@ -803,8 +803,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 44185345}
+  m_Children: []
   m_Father: {fileID: 199814419}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &632166566
@@ -1587,13 +1586,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1123856269}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.9961947, z: -0.08715578, w: 0}
+  m_LocalRotation: {x: 0.17364816, y: 0.9848078, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: 0.32067502, z: 12.5}
   m_LocalScale: {x: 1, y: 1.5148526, z: 0.48514742}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 10, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 20}
 --- !u!1 &1131281546
 GameObject:
   m_ObjectHideFlags: 0
@@ -1632,8 +1631,8 @@ MonoBehaviour:
   directionMode: 0
   forwardRef: {fileID: 1123856270}
   angleDeg: 12
-  speedRange: {x: 1.5, y: 3}
-  randomAngularVelRangeDeg: {x: 0, y: 360}
+  speedRange: {x: 2, y: 2.2}
+  randomAngularVelRangeDeg: {x: 30, y: 270}
   weightedPrefabs:
   - prefab: {fileID: 3922821349826572773, guid: c457ab5c93a8b8047a8c8e5d82e96b1c, type: 3}
     weight: 1
@@ -1648,7 +1647,7 @@ MonoBehaviour:
   - prefab: {fileID: 178657619044104507, guid: 1ddaa235b5008b9428b42ec53cc96177, type: 3}
     weight: 1
   autoSpawn: 1
-  spawnsPerSecond: 0.5
+  spawnsPerSecond: 0.2
   drawGizmos: 1
   throwKey: 32
 --- !u!114 &1131281548
@@ -2505,4 +2504,5 @@ SceneRoots:
   - {fileID: 1000225333}
   - {fileID: 397206209}
   - {fileID: 1131281549}
+  - {fileID: 44185345}
   - {fileID: 1123856270}
