@@ -1,5 +1,100 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &676830247643331466
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3945310774899556140}
+  - component: {fileID: 1120787461548107090}
+  - component: {fileID: 2360635329837589432}
+  - component: {fileID: 2768045650620743856}
+  m_Layer: 0
+  m_Name: Handle Collider
+  m_TagString: RingHandle
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3945310774899556140
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 676830247643331466}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7517658844191402405}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1120787461548107090
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 676830247643331466}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.086390026, y: 0.15595949, z: 0.07571079}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2360635329837589432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 676830247643331466}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb929b9e986d72340bc607b54b897665, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selfRing: {fileID: 4892743007618431682}
+--- !u!54 &2768045650620743856
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 676830247643331466}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &2305337991305867529
 GameObject:
   m_ObjectHideFlags: 0
@@ -228,6 +323,7 @@ Transform:
   - {fileID: 4309315232388629778}
   - {fileID: 6513114591952914354}
   - {fileID: 8386428932178817912}
+  - {fileID: 3945310774899556140}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1714194656638054794
@@ -294,14 +390,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb02b467f74b85e4f8419e2cc58e7319, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: 0
+  collidePoint1: {fileID: 6513114591952914354}
+  collidePoint2: {fileID: 8386428932178817912}
   redHalfRing: {fileID: 2272076565321302286}
   yellowHalfRing: {fileID: 4959298629089389645}
   blueHalfRing: {fileID: 2939100554392871643}
   transHalfRing: {fileID: 3496504098738675624}
-  collider1: {fileID: 4697133199824980540}
-  collider2: {fileID: 2005492733895202247}
-  fullRingPrefab: {fileID: 8267657069882710070, guid: de97a79ec83e60b468b7805df50d44a0, type: 3}
 --- !u!1001 &1363519925477545013
 PrefabInstance:
   m_ObjectHideFlags: 0
