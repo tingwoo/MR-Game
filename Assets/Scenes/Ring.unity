@@ -374,6 +374,7 @@ GameObject:
   - component: {fileID: 345807518}
   - component: {fileID: 345807516}
   - component: {fileID: 345807517}
+  - component: {fileID: 345807519}
   m_Layer: 0
   m_Name: RingManager
   m_TagString: Untagged
@@ -409,7 +410,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 345807515}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 35a3321d8de8673429d74fc51c85095f, type: 3}
   m_Name: 
@@ -432,6 +433,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &345807519
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345807515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0011a7f669ac9f345baea009cb65abc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fullRingPrefab: {fileID: 9168225104312368910, guid: 64377d1292e260f4486222540a6ba4e7, type: 3}
+  halfRingPrefab: {fileID: 1714194656638054794, guid: 447f6fd687386854e9eb04ecabbddbb0, type: 3}
+  distanceThreshold: 0.06
 --- !u!1 &425036301
 GameObject:
   m_ObjectHideFlags: 0

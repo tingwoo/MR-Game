@@ -4,7 +4,7 @@ using Unity.Netcode;
 // using Unity.Mathematics;
 // using Unity.VisualScripting;
 
-public class RingManager : NetworkBehaviour
+public class TestRingManager : NetworkBehaviour
 {
     public NetworkObject fullRingPrefab;
     public NetworkObject halfRingPrefab;
@@ -113,89 +113,89 @@ public class RingManager : NetworkBehaviour
             handRingDict.Remove(key);
         }
 
-        // Find close pairs of rings
-        var entries = new List<KeyValuePair<GameObject, NetworkHalfRing>>(handRingDict);
+        // // Find close pairs of rings
+        // var entries = new List<KeyValuePair<GameObject, NetworkHalfRing>>(handRingDict);
 
-        for (int i = 0; i < entries.Count; i++)
-        {
-            var hand1 = entries[i].Key;
-            var ring1 = entries[i].Value;
-            if (hand1 == null || !RingExists(ring1)) continue;
-            if (pairedRings.ContainsKey(ring1)) continue;
+        // for (int i = 0; i < entries.Count; i++)
+        // {
+        //     var hand1 = entries[i].Key;
+        //     var ring1 = entries[i].Value;
+        //     if (hand1 == null || !RingExists(ring1)) continue;
+        //     if (pairedRings.ContainsKey(ring1)) continue;
 
-            for (int j = i + 1; j < entries.Count; j++)
-            {
-                var hand2 = entries[j].Key;
-                var ring2 = entries[j].Value;
-                if (hand2 == null || !RingExists(ring2)) continue;
-                if (pairedRings.ContainsKey(ring2)) continue;
+        //     for (int j = i + 1; j < entries.Count; j++)
+        //     {
+        //         var hand2 = entries[j].Key;
+        //         var ring2 = entries[j].Value;
+        //         if (hand2 == null || !RingExists(ring2)) continue;
+        //         if (pairedRings.ContainsKey(ring2)) continue;
 
-                if (CheckClose(ring1, ring2))
-                {
-                    var fullRingNO = Instantiate(fullRingPrefab);
-                    fullRingNO.Spawn();
-                    var fullRing = fullRingNO.GetComponent<NetworkFullRing>();
-                    fullRing.SetColor(GameColorExtensions.Add(ring1.Color, ring2.Color));
-                    pairedRings[ring1] = (ring2, fullRing);
+        //         if (CheckClose(ring1, ring2))
+        //         {
+        //             var fullRingNO = Instantiate(fullRingPrefab);
+        //             fullRingNO.Spawn();
+        //             var fullRing = fullRingNO.GetComponent<NetworkFullRing>();
+        //             fullRing.SetColor(GameColorExtensions.Add(ring1.Color, ring2.Color));
+        //             pairedRings[ring1] = (ring2, fullRing);
 
-                    ring1.SetShow(false);
-                    ring2.SetShow(false);
-                }
-            }
-        }
+        //             ring1.SetShow(false);
+        //             ring2.SetShow(false);
+        //         }
+        //     }
+        // }
 
-        // Check whether old pairs are still paired, if not, remove them from dictionary
-        // Validate existing pairs and remove ones that no longer meet criteria
+        // // Check whether old pairs are still paired, if not, remove them from dictionary
+        // // Validate existing pairs and remove ones that no longer meet criteria
 
-        var pairsToRemove = new List<NetworkHalfRing>();
+        // var pairsToRemove = new List<NetworkHalfRing>();
 
-        foreach (var kvp in pairedRings)
-        {
-            var ring1 = kvp.Key;
-            var ring2 = kvp.Value.pairedRing;
-            var fullRing = kvp.Value.spawnedRing;
-            bool shouldUnpair = false;
+        // foreach (var kvp in pairedRings)
+        // {
+        //     var ring1 = kvp.Key;
+        //     var ring2 = kvp.Value.pairedRing;
+        //     var fullRing = kvp.Value.spawnedRing;
+        //     bool shouldUnpair = false;
 
-            if (!RingExists(ring1) || !RingExists(ring2))
-            {
-                shouldUnpair = true;
-            }
-            else if (!CheckClose(ring1, ring2))
-            {
-                shouldUnpair = true;
-            }
+        //     if (!RingExists(ring1) || !RingExists(ring2))
+        //     {
+        //         shouldUnpair = true;
+        //     }
+        //     else if (!CheckClose(ring1, ring2))
+        //     {
+        //         shouldUnpair = true;
+        //     }
 
-            if (shouldUnpair)
-            {
-                fullRing.NetworkObject.Despawn();
-                // Destroy(fullRing.NetworkObject);
+        //     if (shouldUnpair)
+        //     {
+        //         fullRing.NetworkObject.Despawn();
+        //         // Destroy(fullRing.NetworkObject);
 
-                ring1.SetShow(true);
-                ring2.SetShow(true);
+        //         ring1.SetShow(true);
+        //         ring2.SetShow(true);
 
-                pairsToRemove.Add(ring1);
-            }
-            else
-            {
-                fullRing.transform.position = (ring1.transform.position + ring2.transform.position) * 0.5f;
+        //         pairsToRemove.Add(ring1);
+        //     }
+        //     else
+        //     {
+        //         fullRing.transform.position = (ring1.transform.position + ring2.transform.position) * 0.5f;
 
-                Vector3 avgForward = (ring1.transform.forward + ring2.transform.forward) * 0.5f;
-                Vector3 avgUp = (ring1.transform.up + ring2.transform.up) * 0.5f;
+        //         Vector3 avgForward = (ring1.transform.forward + ring2.transform.forward) * 0.5f;
+        //         Vector3 avgUp = (ring1.transform.up + ring2.transform.up) * 0.5f;
                 
-                if (Vector3.Dot(ring1.transform.forward, ring2.transform.forward) < 0)
-                    avgForward = (ring1.transform.forward - ring2.transform.forward) * 0.5f;
+        //         if (Vector3.Dot(ring1.transform.forward, ring2.transform.forward) < 0)
+        //             avgForward = (ring1.transform.forward - ring2.transform.forward) * 0.5f;
                 
-                if (Vector3.Dot(ring1.transform.up, ring2.transform.up) < 0)
-                    avgUp = (ring1.transform.up - ring2.transform.up) * 0.5f;
+        //         if (Vector3.Dot(ring1.transform.up, ring2.transform.up) < 0)
+        //             avgUp = (ring1.transform.up - ring2.transform.up) * 0.5f;
                 
-                fullRing.transform.rotation = Quaternion.LookRotation(avgForward, avgUp);
-            }
-        }
+        //         fullRing.transform.rotation = Quaternion.LookRotation(avgForward, avgUp);
+        //     }
+        // }
 
-        foreach (var ring in pairsToRemove)
-        {
-            pairedRings.Remove(ring);
-        }
+        // foreach (var ring in pairsToRemove)
+        // {
+        //     pairedRings.Remove(ring);
+        // }
     }
 
     private bool RingExists(NetworkHalfRing r)
