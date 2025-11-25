@@ -2,6 +2,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using System.Linq;
+using Palmmedia.ReportGenerator.Core;
 
 public class RingManager : NetworkBehaviour
 {
@@ -23,6 +24,13 @@ public class RingManager : NetworkBehaviour
     // Mapping: HalfRing -> (PartnerHalfRing, TheSpawnedFullRing)
     private Dictionary<NetworkHalfRing, (NetworkHalfRing pairedRing, NetworkFullRing spawnedRing)> pairedRings = new Dictionary<NetworkHalfRing, (NetworkHalfRing, NetworkFullRing)>();
 
+    private bool settingPosition = true;
+    [SerializeField] private Vector3 ringOffset;
+    [SerializeField] private Vector3 ringRotation;
+
+    // [SerializeField] private GameObject testObject;
+    
+
     private void Update()
     {
         if (!IsServer) return;
@@ -30,6 +38,28 @@ public class RingManager : NetworkBehaviour
         HandleSpawningAndMovement();
         HandleNewPairs();
         HandleExistingPairs();
+
+        Vector2 hChange = OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick);
+        float vChange = 0f;
+
+        if (OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
+        {
+            settingPosition = !settingPosition;
+        }
+
+        if (OVRInput.Get(OVRInput.Button.Two))
+        {
+            vChange += 1f;
+        } else if (OVRInput.Get(OVRInput.Button.One))
+        {
+            vChange -= 1f;
+        }
+
+        if (settingPosition)
+            ringOffset += new Vector3(hChange.x, vChange, hChange.y) * Time.deltaTime;
+        else
+            ringRotation += new Vector3(hChange.y, vChange, hChange.x) * Time.deltaTime;
+
     }
 
     /// <summary>
@@ -113,13 +143,31 @@ public class RingManager : NetworkBehaviour
 
         // 2. Update Position/Rotation
         // Note: If Ring has a NetworkTransform, ensure it's in ServerAuth mode.
-        ring.transform.position = handGO.transform.position;
+
+        // testObject.transform.position = handGO.transform.position;
+        // testObject.transform.rotation = handGO.transform.rotation;
+
+        // testObject.transform.localPosition += ringOffset;
         
         // Apply offset based on handedness
         if (isLeft)
-            ring.transform.rotation = handGO.transform.rotation * Quaternion.Euler(-45f, 180f, 0f);
+        {
+            ring.transform.position = handGO.transform.position;
+            ring.transform.rotation = handGO.transform.rotation;
+
+            ring.transform.localPosition += new Vector3(-ringOffset.x, ringOffset.y, ringOffset.z);
+            // ring.transform.rotation = handGO.transform.rotation * Quaternion.Euler(-45f, 180f, 0f);
+            ring.transform.rotation *= Quaternion.Euler(new Vector3(-ringRotation.x, 180f - ringRotation.y, -ringRotation.z));
+        }
         else
-            ring.transform.rotation = handGO.transform.rotation * Quaternion.Euler(45f, 0f, 0f);
+        {
+            ring.transform.position = handGO.transform.position;
+            ring.transform.rotation = handGO.transform.rotation;
+
+            ring.transform.localPosition += ringOffset;
+            // ring.transform.rotation = handGO.transform.rotation * Quaternion.Euler(45f, 0f, 0f);
+            ring.transform.rotation *= Quaternion.Euler(ringRotation);
+        }
     }
 
     /// <summary>
