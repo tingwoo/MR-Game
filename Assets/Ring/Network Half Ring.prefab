@@ -296,7 +296,6 @@ GameObject:
   - component: {fileID: 7517658844191402405}
   - component: {fileID: 1714194656638054794}
   - component: {fileID: 6070911889384549050}
-  - component: {fileID: 6524516322796891535}
   - component: {fileID: 4892743007618431682}
   m_Layer: 0
   m_Name: Network Half Ring
@@ -339,7 +338,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2827881251
+  GlobalObjectIdHash: 1826043078
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -379,20 +378,6 @@ MonoBehaviour:
   InLocalSpace: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &6524516322796891535
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6850582577964452323}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 909616ebbd4e02644913a36007052b67, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetToFollow: {fileID: 0}
-  positionOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &4892743007618431682
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -405,14 +390,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb02b467f74b85e4f8419e2cc58e7319, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: 0
+  collidePoint1: {fileID: 6513114591952914354}
+  collidePoint2: {fileID: 8386428932178817912}
   redHalfRing: {fileID: 2272076565321302286}
   yellowHalfRing: {fileID: 4959298629089389645}
   blueHalfRing: {fileID: 2939100554392871643}
   transHalfRing: {fileID: 3496504098738675624}
-  collider1: {fileID: 4697133199824980540}
-  collider2: {fileID: 2005492733895202247}
-  fullRingPrefab: {fileID: 8267657069882710070, guid: de97a79ec83e60b468b7805df50d44a0, type: 3}
 --- !u!1001 &1363519925477545013
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -17,8 +17,8 @@ public class NetworkRingSpawner : NetworkBehaviour
             for (int i = 0; i < 4; i++)
             {
                 var r = Instantiate(halfRingPrefab, new Vector3(0.0f, 1.0f, 0.3f * (i - 1.5f)), Quaternion.identity);
-                r.GetComponent<NetworkHalfRing>().SetColor((GameColor)i);
                 r.Spawn();
+                r.GetComponent<NetworkHalfRing>().SetColor((GameColor)i);
             }
         }
     }
