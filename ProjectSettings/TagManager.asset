@@ -29,6 +29,7 @@ TagManager:
   - SamplesInfoPanel
   - QDSUIToggleCheckboxRadio
   - RingHandle
+  - FullRing
   layers:
   - Default
   - TransparentFX
