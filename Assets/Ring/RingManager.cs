@@ -4,7 +4,7 @@ using Unity.Netcode;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 
-public class ServerHandTracker : NetworkBehaviour
+public class RingManager : NetworkBehaviour
 {
     public NetworkObject fullRingPrefab;
     public NetworkObject halfRingPrefab;
