@@ -417,6 +417,10 @@ MonoBehaviour:
   halfRingPrefab: {fileID: 1714194656638054794, guid: 447f6fd687386854e9eb04ecabbddbb0, type: 3}
   fullRingPrefab: {fileID: 5340566584859844556, guid: 828d70ed00ab5704fb4dc793d4ed1696, type: 3}
   distanceThreshold: 0.1
+  ringOffset: {x: 0, y: 0, z: 0}
+  ringLongitude: 0
+  ringLatitude: 90
+  adjustmentSpeed: 0.25
 --- !u!4 &345807518
 Transform:
   m_ObjectHideFlags: 0
@@ -545,6 +549,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 632166566}
     - target: {fileID: 2336446269904782542, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2336446269904782542, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
       propertyPath: _leftEyeAnchor
       value: 
       objectReference: {fileID: 915654874}
@@ -600,6 +608,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4604000520904607249, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5801245061754409418, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
       propertyPath: _playerEyes
       value: 
@@ -612,6 +624,10 @@ PrefabInstance:
       propertyPath: _ovrCameraRig
       value: 
       objectReference: {fileID: 1896680429}
+    - target: {fileID: 7245423369569572801, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
