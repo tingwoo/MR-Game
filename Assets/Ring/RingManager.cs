@@ -24,15 +24,11 @@ public class RingManager : NetworkBehaviour
 
     private bool settingPosition = true;
     [SerializeField] private Vector3 ringOffset;
-    // [SerializeField] private Vector3 ringRotation;
     [SerializeField] private float ringLongitude;
     [SerializeField] private float ringLatitude;
 
     public float adjustmentSpeed;
-
-    // [SerializeField] private GameObject testObject;
     
-
     private void Update()
     {
         if (!IsServer) return;
@@ -125,16 +121,18 @@ public class RingManager : NetworkBehaviour
         // 2. Update Position/Rotation
         // Note: If Ring has a NetworkTransform, ensure it's in ServerAuth mode.
         Vector3 handedOffset;
-        float handedLongitude;
+        float handedLongitude, handedLatitude;
 
         if (isLeft)
         {
             handedOffset = new Vector3(-ringOffset.x, ringOffset.y, ringOffset.z);
             handedLongitude = 180f - ringLongitude;
+            handedLatitude = -ringLatitude;
         } else
         {
             handedOffset = ringOffset;
             handedLongitude = ringLongitude;
+            handedLatitude = ringLatitude;
         }
 
         // 1. Calculate the Rotation
@@ -145,7 +143,7 @@ public class RingManager : NetworkBehaviour
         ring.transform.Rotate(Vector3.up, handedLongitude, Space.Self);
 
         // Latitude: Rotate around red axis (x)
-        ring.transform.Rotate(Vector3.right, ringLatitude, Space.Self);
+        ring.transform.Rotate(Vector3.right, handedLatitude, Space.Self);
 
         // 2. Calculate the Position
         // Rotate the offset vector to match the hand's orientation
@@ -301,9 +299,8 @@ public class RingManager : NetworkBehaviour
         if (OVRInput.GetDown(OVRInput.Button.Three))
         {
             ringOffset = new Vector3(0f, 0f, 0f);
-            ringLatitude = 90f;
+            ringLatitude = 45f;
             ringLongitude = 0f;
-            // ringRotation = new Vector3(45f, 0f, 0f);
         }
 
         if (OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
@@ -322,7 +319,6 @@ public class RingManager : NetworkBehaviour
         {
             ringLongitude += hChange.x;
             ringLatitude += vChange;
-            // ringRotation += new Vector3(hChange.y, vChange, hChange.x) * Time.deltaTime * adjustmentSpeed * 180f;
         }
             
     }

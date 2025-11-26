@@ -419,7 +419,7 @@ MonoBehaviour:
   distanceThreshold: 0.1
   ringOffset: {x: 0, y: 0, z: 0}
   ringLongitude: 0
-  ringLatitude: 90
+  ringLatitude: 45
   adjustmentSpeed: 0.25
 --- !u!4 &345807518
 Transform:
