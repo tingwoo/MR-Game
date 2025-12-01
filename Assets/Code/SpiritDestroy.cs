@@ -15,7 +15,7 @@ public class SpiritDestroy : NetworkBehaviour
         // 1. Server Logic Only
         if (!IsServer) return;
 
-        if (other.CompareTag("FullRing") && other.gameObject.GetComponent<NetworkFullRing>().Color == color)
+        if (other.CompareTag("FullRing") && other.gameObject.GetComponent<FullRing>().color == color)
         {
             // 2. Tell all clients to play the VFX BEFORE destroying the object
             // We convert the Enum 'color' to a real Unity Color struct here
