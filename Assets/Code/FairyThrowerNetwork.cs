@@ -62,7 +62,7 @@ public class FairyThrowerNetwork : NetworkBehaviour
         }
     }
     
-    public void ThrowOne()
+   public void ThrowOne()
     {
         var pf = PickPrefabByWeight();
         if (pf == null) return;
@@ -73,7 +73,7 @@ public class FairyThrowerNetwork : NetworkBehaviour
 
         // 2. 生成物件 (Server 本地)
         var go = Instantiate(pf, pos, Quaternion.LookRotation(dir)); // 順便設定面向
-        
+
         // 設定隨機大小
         float randomScale = UnityEngine.Random.Range(scaleRange.x, scaleRange.y);
         go.transform.localScale = Vector3.one * randomScale;
@@ -85,7 +85,14 @@ public class FairyThrowerNetwork : NetworkBehaviour
         // =================================================================
         if (netObj != null)
         {
-            netObj.Spawn(); 
+            netObj.Spawn();
+            
+            // --- 【新增的物件追蹤程式碼】 ---
+            if (GameCleanupManager.Instance != null)
+            {
+                GameCleanupManager.Instance.RegisterObject(netObj);
+            }
+            // ---------------------------------
         }
 
         // 3. 設定物理屬性

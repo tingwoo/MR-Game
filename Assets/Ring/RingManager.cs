@@ -1,7 +1,6 @@
  using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
-using System.Linq;
 
 public class RingManager : NetworkBehaviour
 {
@@ -23,6 +22,13 @@ public class RingManager : NetworkBehaviour
     // Mapping: HalfRing -> (PartnerHalfRing, TheSpawnedFullRing)
     private Dictionary<NetworkHalfRing, (NetworkHalfRing pairedRing, NetworkFullRing spawnedRing)> pairedRings = new Dictionary<NetworkHalfRing, (NetworkHalfRing, NetworkFullRing)>();
 
+    private bool settingPosition = true;
+    [SerializeField] private Vector3 ringOffset;
+    [SerializeField] private float ringLongitude;
+    [SerializeField] private float ringLatitude;
+
+    public float adjustmentSpeed;
+    
     private void Update()
     {
         if (!IsServer) return;
@@ -30,6 +36,7 @@ public class RingManager : NetworkBehaviour
         HandleSpawningAndMovement();
         HandleNewPairs();
         HandleExistingPairs();
+        HandleInput();
     }
 
     /// <summary>
@@ -113,13 +120,38 @@ public class RingManager : NetworkBehaviour
 
         // 2. Update Position/Rotation
         // Note: If Ring has a NetworkTransform, ensure it's in ServerAuth mode.
-        ring.transform.position = handGO.transform.position;
-        
-        // Apply offset based on handedness
+        Vector3 handedOffset;
+        float handedLongitude, handedLatitude;
+
         if (isLeft)
-            ring.transform.rotation = handGO.transform.rotation * Quaternion.Euler(-45f, 180f, 0f);
-        else
-            ring.transform.rotation = handGO.transform.rotation * Quaternion.Euler(45f, 0f, 0f);
+        {
+            handedOffset = new Vector3(-ringOffset.x, ringOffset.y, ringOffset.z);
+            handedLongitude = 180f - ringLongitude;
+            handedLatitude = -ringLatitude;
+        } else
+        {
+            handedOffset = ringOffset;
+            handedLongitude = ringLongitude;
+            handedLatitude = ringLatitude;
+        }
+
+        // 1. Calculate the Rotation
+        // Combine the hand's rotation with the ring's custom rotation
+        ring.transform.rotation = handGO.transform.rotation;
+
+        // Longitude: Rotate around green axis (y)
+        ring.transform.Rotate(Vector3.up, handedLongitude, Space.Self);
+
+        // Latitude: Rotate around red axis (x)
+        ring.transform.Rotate(Vector3.right, handedLatitude, Space.Self);
+
+        // 2. Calculate the Position
+        // Rotate the offset vector to match the hand's orientation
+        // In Unity, "Quaternion * Vector3" applies the rotation to the vector
+        Vector3 rotatedOffset = handGO.transform.rotation * handedOffset;
+
+        // Add the rotated offset to the hand's origin
+        ring.transform.position = handGO.transform.position + rotatedOffset;
     }
 
     /// <summary>
@@ -257,6 +289,38 @@ public class RingManager : NetworkBehaviour
         {
             full.transform.rotation = Quaternion.LookRotation(avgForward, avgUp);
         }
+    }
+
+    private void HandleInput()
+    {
+        Vector2 hChange = OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick);
+        float vChange = 0f;
+
+        if (OVRInput.GetDown(OVRInput.Button.Three))
+        {
+            ringOffset = new Vector3(0f, 0f, 0f);
+            ringLatitude = 45f;
+            ringLongitude = 0f;
+        }
+
+        if (OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
+        {
+            settingPosition = !settingPosition;
+        }
+
+        if (OVRInput.Get(OVRInput.Button.Two))
+            vChange += 3f * adjustmentSpeed;
+        else if (OVRInput.Get(OVRInput.Button.One))
+            vChange -= 3f * adjustmentSpeed;
+
+        if (settingPosition)
+            ringOffset += new Vector3(hChange.x, vChange, hChange.y) * Time.deltaTime * adjustmentSpeed;
+        else
+        {
+            ringLongitude += hChange.x;
+            ringLatitude += vChange;
+        }
+            
     }
 
     private bool IsRingValid(NetworkHalfRing r)
