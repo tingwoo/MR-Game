@@ -16,8 +16,7 @@ public class SpiritDestroy : NetworkBehaviour
         // 1. Server Logic Only: Collision logic is authoritative on the server
         if (!IsServer) return;
 
-        // Check if the collided object is a "FullRing" and matches color
-        if (other.CompareTag("FullRing") && other.gameObject.GetComponent<NetworkFullRing>().Color == color)
+        if (other.CompareTag("FullRing") && other.gameObject.GetComponent<FullRing>().color == color)
         {
             Color visualColor = ConvertGameColorToUnityColor(color);
             

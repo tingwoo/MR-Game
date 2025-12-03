@@ -827,6 +827,7 @@ MonoBehaviour:
   angleDeg: 12
   speedRange: {x: 1.5, y: 3}
   randomAngularVelRangeDeg: {x: 0, y: 360}
+  scaleRange: {x: 1, y: 1}
   weightedPrefabs:
   - prefab: {fileID: 3922821349826572773, guid: c457ab5c93a8b8047a8c8e5d82e96b1c, type: 3}
     weight: 1
@@ -978,6 +979,7 @@ MonoBehaviour:
   requestEyeTrackingPermissionOnStartup: 0
   requestScenePermissionOnStartup: 0
   requestRecordAudioPermissionOnStartup: 0
+  requestPassthroughCameraAccessPermissionOnStartup: 0
   _localDimming: 1
   _trackingOriginType: 1
   usePositionTracking: 1

@@ -5038,6 +5038,78 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1644737637}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &102850660
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 102850663}
+  - component: {fileID: 102850661}
+  - component: {fileID: 102850662}
+  m_Layer: 0
+  m_Name: RingManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &102850661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102850660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 1423520262
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &102850662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102850660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1be02919b5269904caf2207f543ca694, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  halfRingPrefab: {fileID: 6850582577964452323, guid: 9d3b65882729b87419b269a9c76f51ad, type: 3}
+  fullRingPrefab: {fileID: 8267657069882710070, guid: 5b236027fdd0f1a41aa360a72c4c0397, type: 3}
+  ringOffset: {x: 0, y: 0, z: 0}
+  ringLongitude: 0
+  ringLatitude: 45
+  distanceThreshold: 0.1
+--- !u!4 &102850663
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102850660}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.010403804, y: -0.030184321, z: -0.0023129636}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &199814418
 GameObject:
   m_ObjectHideFlags: 0
@@ -5206,12 +5278,12 @@ GameObject:
   - component: {fileID: 345807516}
   - component: {fileID: 345807517}
   m_Layer: 0
-  m_Name: RingManager
+  m_Name: RingManager (Old)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &345807516
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6242,7 +6314,7 @@ MonoBehaviour:
     weight: 1
   - prefab: {fileID: 6728092312944040633, guid: 11a9149e6620c77419c6fb155c60f72a, type: 3}
     weight: 1
-  - prefab: {fileID: 3660319412690773102, guid: 9ca0dbfc603d47f49873417aab9f60b5, type: 3}
+  - prefab: {fileID: 7368494390516430304, guid: e2a88b09c8304224190050cc6f39a57d, type: 3}
     weight: 1
   - prefab: {fileID: 8042441834786420471, guid: f0f7d3988d794de47b230d1392e8fb63, type: 3}
     weight: 1
@@ -17365,3 +17437,4 @@ SceneRoots:
   - {fileID: 345807518}
   - {fileID: 1820142899}
   - {fileID: 2023972336}
+  - {fileID: 102850663}
