@@ -6388,7 +6388,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   thrower: {fileID: 0}
-  timeToMaxDifficulty: 250
+  timeToMaxDifficulty: 50
   startSpawnRate: 0.2
   maxSpawnRate: 0.35
   startSpeedRange: {x: 2, y: 2.5}
