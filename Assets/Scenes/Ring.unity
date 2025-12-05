@@ -6279,6 +6279,7 @@ GameObject:
   - component: {fileID: 1131281548}
   - component: {fileID: 1131281547}
   - component: {fileID: 1131281550}
+  - component: {fileID: 1131281551}
   m_Layer: 0
   m_Name: FairyThrower
   m_TagString: Untagged
@@ -6317,7 +6318,7 @@ MonoBehaviour:
   - prefab: {fileID: 7368494390516430304, guid: e2a88b09c8304224190050cc6f39a57d, type: 3}
     weight: 1
   - prefab: {fileID: 8042441834786420471, guid: f0f7d3988d794de47b230d1392e8fb63, type: 3}
-    weight: 1
+    weight: 2
   - prefab: {fileID: 3254881035277847497, guid: dde7070ea1173ff489f424e83f429cd6, type: 3}
     weight: 1
   - prefab: {fileID: 178657619044104507, guid: 1ddaa235b5008b9428b42ec53cc96177, type: 3}
@@ -6374,6 +6375,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cb2f09633c758d4c9c890a87242418b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1131281551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1131281546}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a369e024c56eb7c4c89674674f7b2c27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  thrower: {fileID: 0}
+  timeToMaxDifficulty: 250
+  startSpawnRate: 0.2
+  maxSpawnRate: 0.35
+  startSpeedRange: {x: 2, y: 2.5}
+  maxSpeedRange: {x: 4, y: 5.3}
+  usePingPongMode: 1
 --- !u!1 &1135131119
 GameObject:
   m_ObjectHideFlags: 0
