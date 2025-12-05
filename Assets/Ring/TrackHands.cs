@@ -27,7 +27,7 @@ public class TrackHands : NetworkBehaviour
         for (int i = 0; i < 4; i++)
         {
             GameObject p = Instantiate(halfRingPrefab);
-            p.GetComponent<HalfRing>().hand = (i % 2 == 0 ? Handedness.Left : Handedness.Right, i < 2 ? false : true);
+            p.GetComponent<HalfRing>().hand = new HandData(i % 2 == 0 ? Handedness.Left : Handedness.Right, i < 2 ? false : true);
             p.GetComponent<HalfRing>().color = (GameColor)i;
             p.GetComponent<HalfRing>().UpdateModels();
 

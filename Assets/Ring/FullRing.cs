@@ -14,8 +14,8 @@ public class FullRing : MonoBehaviour
     public GameObject greenFullRing;
     public GameObject purpleFullRing;
 
-    public (Handedness handedness, bool isServer) hand1;
-    public (Handedness handedness, bool isServer) hand2;
+    public HandData hand1;
+    public HandData hand2;
 
     public void UpdateModels()
     {
@@ -56,22 +56,10 @@ public class FullRing : MonoBehaviour
 
     public void PlayHaptics()
     {
-        if (hand1.isServer)
-        {
-            var haptics = FindObjectOfType<HapticsTest>();
-            if (haptics != null)
-            {
-                haptics.PlayHaptics(hand1.handedness, HapticType.One);
-            }
-        }
-
-        if (hand2.isServer)
-        {
-            var haptics = FindObjectOfType<HapticsTest>();
-            if (haptics != null)
-            {
-                haptics.PlayHaptics(hand2.handedness, HapticType.One);
-            }
+        var haptics = FindObjectOfType<HapticsTest>();
+        if (haptics != null) {
+            haptics.PlayHapticsOnHand(hand1, HapticType.One);
+            haptics.PlayHapticsOnHand(hand2, HapticType.One);
         }
     }
 }
