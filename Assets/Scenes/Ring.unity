@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028301, g: 0.22571309, b: 0.30692127, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1016,10 +1016,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 983854988}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
+      - m_Target: {fileID: 945876425}
+        m_TargetAssemblyTypeName: TutorialUISync, Assembly-CSharp
+        m_MethodName: OnClick_NextPage
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -1027,18 +1027,6 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 2046093873}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
         m_CallState: 2
 --- !u!114 &348655048
 MonoBehaviour:
@@ -2257,7 +2245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddd0d811180e747608d13baf101df6ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  impactColor: {r: 1, g: 0, b: 0, a: 1}
+  color: 0
   explosionPrefab: {fileID: 0}
 --- !u!135 &842946077
 SphereCollider:
@@ -2544,6 +2532,8 @@ GameObject:
   - component: {fileID: 945876423}
   - component: {fileID: 945876422}
   - component: {fileID: 945876421}
+  - component: {fileID: 945876424}
+  - component: {fileID: 945876425}
   m_Layer: 0
   m_Name: Canvas_TutorialInfo
   m_TagString: Untagged
@@ -2636,6 +2626,43 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &945876424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945876419}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 453250101
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &945876425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945876419}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4c42cf9b2b404e06bc0289ce0cc5d84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tutorialPages:
+  - {fileID: 1858866002}
+  - {fileID: 983854988}
+  - {fileID: 2046093873}
 --- !u!1 &967938403
 GameObject:
   m_ObjectHideFlags: 0
@@ -2684,7 +2711,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddd0d811180e747608d13baf101df6ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  impactColor: {r: 1, g: 0, b: 0, a: 1}
+  color: 0
   explosionPrefab: {fileID: 0}
 --- !u!135 &967938406
 SphereCollider:
@@ -2902,7 +2929,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddd0d811180e747608d13baf101df6ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  impactColor: {r: 1, g: 0, b: 0, a: 1}
+  color: 0
   explosionPrefab: {fileID: 0}
 --- !u!135 &1001772362
 SphereCollider:
@@ -3154,10 +3181,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1858866002}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
+      - m_Target: {fileID: 945876425}
+        m_TargetAssemblyTypeName: TutorialUISync, Assembly-CSharp
+        m_MethodName: OnClick_NextPage
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -3165,18 +3192,6 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 983854988}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
         m_CallState: 2
 --- !u!114 &1048394211
 MonoBehaviour:
@@ -3274,7 +3289,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1128152158}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0.01}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3666,7 +3681,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1268822266}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0.01}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4365,6 +4380,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 662425540459373441, guid: 68cea1b10717d410d950b986fa21cafd, type: 3}
       propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1685528507949249441, guid: 68cea1b10717d410d950b986fa21cafd, type: 3}
+      propertyPath: color
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -6421,7 +6440,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

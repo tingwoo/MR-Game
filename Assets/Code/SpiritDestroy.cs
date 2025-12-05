@@ -6,7 +6,7 @@ using UnityEngine;
 public class SpiritDestroy : NetworkBehaviour
 {
     public GameColor color;
-    
+
     [Header("VFX References")]
     [SerializeField] private GameObject explosionPrefab;
 
@@ -23,7 +23,7 @@ public class SpiritDestroy : NetworkBehaviour
             SpawnExplosionClientRpc(transform.position, visualColor);
 
             // 3. Handle Destruction
-            if (NetworkObject != null && NetworkObject.IsSpawned) 
+            if (NetworkObject != null && NetworkObject.IsSpawned)
                 NetworkObject.Despawn();
             else
                 Destroy(gameObject);

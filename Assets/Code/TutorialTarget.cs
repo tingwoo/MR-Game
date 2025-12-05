@@ -3,70 +3,84 @@ using Unity.Netcode;
 
 public class TutorialTarget : NetworkBehaviour
 {
-    [Header("顏色設定")]
-    public Color impactColor = Color.red; // 請在 Inspector 設定對應顏色
-    
-    [Header("特效")]
-    public GameObject explosionPrefab; // 請拖入 Explosion Prefab
+    [Header("屬性設定")]
+    public GameColor color; // 請在 Inspector 設定這隻精靈的顏色 (Red/Blue...)
 
-    // 1. 手把碰撞偵測
+    [Header("特效")]
+    [SerializeField] private GameObject explosionPrefab;
+
     private void OnTriggerEnter(Collider other)
     {
-        // 只有 Server 有權力處理邏輯
+        // 1. 只有 Server 處理邏輯
         if (!IsServer) return;
 
-        // 檢查是否為手把 (或是 FullRing)
-        if (other.CompareTag("PlayerHand") || other.CompareTag("FullRing")) 
+        // 2. 【嚴格判定邏輯】跟 SpiritDestroy 完全一致
+        // 條件 A: 撞到的東西 Tag 是 "FullRing"
+        // 條件 B: 撞到的東西身上有 NetworkFullRing 腳本，且顏色跟精靈一樣
+        if (other.CompareTag("FullRing"))
         {
+            var ringScript = other.GetComponent<NetworkFullRing>();
+
+            // 確保腳本存在，且顏色正確
+            if (ringScript != null && ringScript.Color == color)
+            {
+                HandleCapture();
+            }
+        }
+    }
+
+    // 滑鼠點擊測試 (保留方便您除錯，正式版可拿掉)
+    private void OnMouseDown()
+    {
+        if (IsServer)
+        {
+            Debug.Log($"【測試】滑鼠強制抓取: {color}");
             HandleCapture();
         }
     }
 
-    // 2. 滑鼠點擊偵測 (測試用)
-    private void OnMouseDown()
-    {
-        // 滑鼠點擊也必須在 Server (Host) 端執行才有效
-        if (!IsServer) return;
-
-        Debug.Log("【測試】滑鼠點擊了教學靶子！");
-        HandleCapture();
-    }
-
-    // 3. 核心邏輯 (把重複的程式碼抽出來)
     private void HandleCapture()
     {
-        // A. 通知管理器 (教學進度 +1)
+        // A. 教學進度 +1
         var status = FindObjectOfType<GameStatusController>();
-        if(status != null)
+        if (status != null)
         {
             status.OnTutorialTargetCaptured();
         }
 
-        // B. 播放特效 (通知所有客戶端)
-        if (explosionPrefab != null)
-        {
-            SpawnExplosionClientRpc(transform.position, impactColor);
-        }
+        // B. 播放特效
+        Color visualColor = ConvertGameColorToUnityColor(color);
+        SpawnExplosionClientRpc(transform.position, visualColor);
 
-        // C. 銷毀自己 (同步銷毀)
-        if (NetworkObject != null && NetworkObject.IsSpawned) 
+        // C. 銷毀物件
+        if (NetworkObject != null && NetworkObject.IsSpawned)
             NetworkObject.Despawn();
         else
             Destroy(gameObject);
     }
 
-    // 4. RPC 廣播特效
     [ClientRpc]
-    private void SpawnExplosionClientRpc(Vector3 position, Color color)
+    private void SpawnExplosionClientRpc(Vector3 position, Color impactColor)
     {
-        // 生成特效物件
-        GameObject boom = Instantiate(explosionPrefab, position, Quaternion.identity);
-        
-        // 設定顏色 (呼叫你們原本的 ExplosionController)
-        ExplosionController controller = boom.GetComponent<ExplosionController>();
-        if (controller != null)
+        if (explosionPrefab != null)
         {
-            controller.Initialize(color);
+            GameObject boom = Instantiate(explosionPrefab, position, Quaternion.identity);
+            ExplosionController controller = boom.GetComponent<ExplosionController>();
+            if (controller != null) controller.Initialize(impactColor);
+        }
+    }
+
+    private Color ConvertGameColorToUnityColor(GameColor gameColor)
+    {
+        switch (gameColor)
+        {
+            case GameColor.Red: return Color.red;
+            case GameColor.Yellow: return Color.yellow;
+            case GameColor.Blue: return Color.blue;
+            case GameColor.Orange: return new Color(1.0f, 0.5f, 0.0f);
+            case GameColor.Green: return Color.green;
+            case GameColor.Purple: return new Color(0.5f, 0.0f, 0.5f);
+            default: return Color.white;
         }
     }
 }
