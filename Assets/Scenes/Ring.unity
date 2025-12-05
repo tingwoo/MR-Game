@@ -6388,10 +6388,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   thrower: {fileID: 0}
-  timeToMaxDifficulty: 50
+  timeToMaxDifficulty: 60
   startSpawnRate: 0.2
-  maxSpawnRate: 0.35
-  startSpeedRange: {x: 2, y: 2.5}
+  maxSpawnRate: 0.45
+  startSpeedRange: {x: 2.1, y: 2.5}
   maxSpeedRange: {x: 4, y: 5.3}
   usePingPongMode: 1
 --- !u!1 &1135131119
