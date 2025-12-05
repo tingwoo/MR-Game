@@ -5805,7 +5805,7 @@ MonoBehaviour:
   staminaSlider: {fileID: 1974974524}
   fillImage: {fileID: 2098147100}
   maxStamina: 100
-  drainSpeed: 2
+  drainSpeed: 4
   smoothSpeed: 5
   fullColor: {r: 1, g: 0.8745, b: 0.651, a: 1}
   lowColor: {r: 1, g: 0.11764706, b: 0.41960785, a: 1}
