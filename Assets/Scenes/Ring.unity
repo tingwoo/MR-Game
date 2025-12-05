@@ -5805,7 +5805,7 @@ MonoBehaviour:
   staminaSlider: {fileID: 1974974524}
   fillImage: {fileID: 2098147100}
   maxStamina: 100
-  drainSpeed: 2
+  drainSpeed: 4
   smoothSpeed: 5
   fullColor: {r: 1, g: 0.8745, b: 0.651, a: 1}
   lowColor: {r: 1, g: 0.11764706, b: 0.41960785, a: 1}
@@ -6279,6 +6279,7 @@ GameObject:
   - component: {fileID: 1131281548}
   - component: {fileID: 1131281547}
   - component: {fileID: 1131281550}
+  - component: {fileID: 1131281551}
   m_Layer: 0
   m_Name: FairyThrower
   m_TagString: Untagged
@@ -6317,7 +6318,7 @@ MonoBehaviour:
   - prefab: {fileID: 7368494390516430304, guid: e2a88b09c8304224190050cc6f39a57d, type: 3}
     weight: 1
   - prefab: {fileID: 8042441834786420471, guid: f0f7d3988d794de47b230d1392e8fb63, type: 3}
-    weight: 1
+    weight: 2
   - prefab: {fileID: 3254881035277847497, guid: dde7070ea1173ff489f424e83f429cd6, type: 3}
     weight: 1
   - prefab: {fileID: 178657619044104507, guid: 1ddaa235b5008b9428b42ec53cc96177, type: 3}
@@ -6374,6 +6375,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cb2f09633c758d4c9c890a87242418b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1131281551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1131281546}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a369e024c56eb7c4c89674674f7b2c27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  thrower: {fileID: 0}
+  timeToMaxDifficulty: 60
+  startSpawnRate: 0.2
+  maxSpawnRate: 0.45
+  startSpeedRange: {x: 2.1, y: 2.5}
+  maxSpeedRange: {x: 4, y: 5.3}
+  usePingPongMode: 1
 --- !u!1 &1135131119
 GameObject:
   m_ObjectHideFlags: 0
@@ -12073,7 +12093,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 419}
+  m_AnchoredPosition: {x: 0, y: 326}
   m_SizeDelta: {x: 881.19995, y: 422.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1900293739
@@ -12368,7 +12388,7 @@ RectTransform:
   m_GameObject: {fileID: 1974974522}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1.6374999, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1445314423}
