@@ -19,11 +19,15 @@ public class TrackHands : NetworkBehaviour
 
     private List<HalfRing> _pairsToRemoveCache = new List<HalfRing>();
 
+    // Snap rings to hands
+    // 0, 1: Client Rings
+    // 2, 3: Server Rings
     void Start()
     {
         for (int i = 0; i < 4; i++)
         {
             GameObject p = Instantiate(halfRingPrefab);
+            p.GetComponent<HalfRing>().hand = new HandData(i % 2 == 0 ? Handedness.Left : Handedness.Right, i < 2 ? false : true);
             p.GetComponent<HalfRing>().color = (GameColor)i;
             p.GetComponent<HalfRing>().UpdateModels();
 
@@ -35,9 +39,6 @@ public class TrackHands : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Snap rings to hands
-        // 0, 1: Server Rings
-        // 2, 3: Client Rings
         foreach (VRNetworkRig rig in VRNetworkRig.ActiveRigs)
         {
             bool isMine = rig.OwnerClientId == NetworkManager.Singleton.LocalClientId;
@@ -214,6 +215,8 @@ public class TrackHands : NetworkBehaviour
         FullRing fullRing = fullRingGO.GetComponent<FullRing>();
         
         // Combine colors (Assuming you have an extension method for this)
+        fullRing.hand1 = ring1.hand;
+        fullRing.hand2 = ring2.hand;
         fullRing.color = GameColorExtensions.Add(ring1.color, ring2.color);
         fullRing.UpdateModels();
 
