@@ -624,7 +624,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 2
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 1264319156}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -1853,6 +1853,7 @@ GameObject:
   - component: {fileID: 2115590206}
   - component: {fileID: 2115590205}
   - component: {fileID: 2115590204}
+  - component: {fileID: 2115590208}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -1942,6 +1943,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2115590208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2115590203}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27be717d9bad4eb4ca1b1e24cbee6473, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2127834245
 PrefabInstance:
   m_ObjectHideFlags: 0
