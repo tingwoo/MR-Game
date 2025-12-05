@@ -23,7 +23,10 @@ public class SpiritDestroy : NetworkBehaviour
             // 2. Visuals: Tell all clients to spawn explosion VFX
             SpawnExplosionClientRpc(transform.position, visualColor);
 
-            // 3. Logic: Add score directly on the Server
+            // 3. Haptics: Tell the full ring to play haptics on its two component hands
+            other.gameObject.GetComponent<FullRing>().PlayHaptics();
+
+            // 4. Logic: Add score directly on the Server
             if (StaminaBarController.Instance != null)
             {
                 StaminaBarController.Instance.AddStaminaServer(scoreAmount);

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class FullRing : MonoBehaviour
@@ -12,6 +13,9 @@ public class FullRing : MonoBehaviour
     public GameObject orangeFullRing;
     public GameObject greenFullRing;
     public GameObject purpleFullRing;
+
+    public (Handedness handedness, bool isServer) hand1;
+    public (Handedness handedness, bool isServer) hand2;
 
     public void UpdateModels()
     {
@@ -47,6 +51,27 @@ public class FullRing : MonoBehaviour
             default:
                 // No ring active (e.g. Transparent or unknown)
                 break;
+        }
+    }
+
+    public void PlayHaptics()
+    {
+        if (hand1.isServer)
+        {
+            var haptics = FindObjectOfType<HapticsTest>();
+            if (haptics != null)
+            {
+                haptics.PlayHaptics(hand1.handedness, HapticType.One);
+            }
+        }
+
+        if (hand2.isServer)
+        {
+            var haptics = FindObjectOfType<HapticsTest>();
+            if (haptics != null)
+            {
+                haptics.PlayHaptics(hand2.handedness, HapticType.One);
+            }
         }
     }
 }

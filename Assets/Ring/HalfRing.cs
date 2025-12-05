@@ -16,6 +16,8 @@ public class HalfRing : MonoBehaviour
     public GameObject blueHalfRing;
     public GameObject transHalfRing;
 
+    public (Handedness handedness, bool isServer) hand;
+
     public void UpdateModels()
     {
 
