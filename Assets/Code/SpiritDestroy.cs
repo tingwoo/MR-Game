@@ -22,6 +22,15 @@ public class SpiritDestroy : NetworkBehaviour
     [SerializeField] private float soundVolume = 1.0f; // 音量大小調整
     // ==========================================
 
+    void Update()
+    {
+        if (!IsServer) return;
+        if (transform.position.z < -10.0f)
+        {
+            Remove();
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         // 1. Server Logic Only: Collision logic is authoritative on the server
@@ -48,11 +57,17 @@ public class SpiritDestroy : NetworkBehaviour
             }
 
             // 4. Cleanup: Despawn the network object
-            if (NetworkObject != null && NetworkObject.IsSpawned) 
-                NetworkObject.Despawn();
-            else
-                Destroy(gameObject);
+            Remove();
         }
+    }
+
+    private void Remove()
+    {
+        if (!IsServer) return;
+        if (NetworkObject != null && NetworkObject.IsSpawned) 
+            NetworkObject.Despawn();
+        else
+            Destroy(gameObject);
     }
 
     [ClientRpc]
