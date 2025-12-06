@@ -50,10 +50,10 @@ public class RingManager : NetworkBehaviour
             UpdateTransform(halfRingList[baseIndex + 1], rig.rootRightHand, false);
         }
 
-        // if (OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
-        // {
-        //     SwitchColor();
-        // }
+        if (OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
+        {
+            SwitchColor();
+        }
 
         // Check connected pairs
         // O(N^2) loop - Acceptable for low player counts (e.g., < 10 players)

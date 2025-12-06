@@ -5095,7 +5095,7 @@ MonoBehaviour:
   ringLongitude: 0
   ringLatitude: 45
   distanceThreshold: 0.1
-  colorSwitchDuration: 2.5
+  colorSwitchDuration: 2
 --- !u!4 &102850663
 Transform:
   m_ObjectHideFlags: 0

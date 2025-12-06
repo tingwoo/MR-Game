@@ -9,15 +9,9 @@ public class HapticsManager : NetworkBehaviour
 {
     public HapticClip hapticClipOne;
     public HapticClip hapticClipThree;
-    // private HapticClipPlayer hapticsPlayerOne;
-    // private HapticClipPlayer hapticsPlayerThree;
 
-    // Start is called before the first frame update
-    // void Start()
-    // {
-    //     hapticsPlayerOne = new HapticClipPlayer(hapticClipOne);
-    //     hapticsPlayerThree = new HapticClipPlayer(hapticClipThree);
-    // }
+    private HapticClipPlayer leftHandPlayer;
+    private HapticClipPlayer rightHandPlayer;
 
     // Update is called once per frame
     void Update()
@@ -28,18 +22,6 @@ public class HapticsManager : NetworkBehaviour
         // }
     }
 
-    // public void PlayHaptics((Handedness handedness, bool isServer) hand, HapticType type)
-    // {
-    //     HapticClipPlayer hcp = new HapticClipPlayer(type == HapticType.One ? hapticClipOne : hapticClipThree);
-    //     if (hand == Handedness.Left)
-    //     {
-    //         hcp.Play(Oculus.Haptics.Controller.Left);
-    //     } else
-    //     {
-    //         hcp.Play(Oculus.Haptics.Controller.Right);
-    //     }
-    // }
-
     public void PlayHapticsOnHand(HandData hand, HapticType type)
     {
         if (!IsServer) return;
@@ -49,15 +31,20 @@ public class HapticsManager : NetworkBehaviour
     [ClientRpc]
     private void PlayHapticsOnHandClientRpc(HandData hand, HapticType type)
     {
+        HapticClip clipToPlay = type == HapticType.One ? hapticClipOne : hapticClipThree;
+
         if (hand.isServer == IsServer)
         {
-            HapticClipPlayer hcp = new HapticClipPlayer(type == HapticType.One ? hapticClipOne : hapticClipThree);
             if (hand.handedness == Handedness.Left)
             {
-                hcp.Play(Oculus.Haptics.Controller.Left);
+                leftHandPlayer?.Stop();
+                leftHandPlayer = new HapticClipPlayer(clipToPlay);
+                leftHandPlayer.Play(Oculus.Haptics.Controller.Left);
             } else
             {
-                hcp.Play(Oculus.Haptics.Controller.Right);
+                rightHandPlayer?.Stop();
+                rightHandPlayer = new HapticClipPlayer(clipToPlay);
+                rightHandPlayer.Play(Oculus.Haptics.Controller.Right);
             }
         }
     }
