@@ -5095,6 +5095,7 @@ MonoBehaviour:
   ringLongitude: 0
   ringLatitude: 45
   distanceThreshold: 0.1
+  colorSwitchDuration: 2.5
 --- !u!4 &102850663
 Transform:
   m_ObjectHideFlags: 0
@@ -5805,7 +5806,7 @@ MonoBehaviour:
   staminaSlider: {fileID: 1974974524}
   fillImage: {fileID: 2098147100}
   maxStamina: 100
-  drainSpeed: 4
+  drainSpeed: 0.04
   smoothSpeed: 5
   fullColor: {r: 1, g: 0.8745, b: 0.651, a: 1}
   lowColor: {r: 1, g: 0.11764706, b: 0.41960785, a: 1}
@@ -5936,7 +5937,7 @@ GameObject:
   - component: {fileID: 872386140}
   - component: {fileID: 872386138}
   m_Layer: 0
-  m_Name: HapticsTest
+  m_Name: HapticsManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

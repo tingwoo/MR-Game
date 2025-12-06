@@ -15,6 +15,8 @@ public class RingManager : NetworkBehaviour
 
     [SerializeField] private float distanceThreshold = 0.1f;
 
+    [SerializeField] private float colorSwitchDuration = 2.5f;
+
     private Dictionary<HalfRing, (HalfRing pairedRing, FullRing spawnedRing)> pairedRings = new Dictionary<HalfRing, (HalfRing, FullRing)>();
 
     private List<HalfRing> _pairsToRemoveCache = new List<HalfRing>();
@@ -47,6 +49,11 @@ public class RingManager : NetworkBehaviour
             UpdateTransform(halfRingList[baseIndex], rig.rootLeftHand, true);
             UpdateTransform(halfRingList[baseIndex + 1], rig.rootRightHand, false);
         }
+
+        // if (OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
+        // {
+        //     SwitchColor();
+        // }
 
         // Check connected pairs
         // O(N^2) loop - Acceptable for low player counts (e.g., < 10 players)
@@ -232,5 +239,71 @@ public class RingManager : NetworkBehaviour
 
         ring1.UpdateModels();
         ring2.UpdateModels();
+    }
+
+    public void SwitchColor()
+    {
+        if (!IsServer) return;
+
+        int idx1 = Random.Range(0, halfRingList.Length);
+        int idx2 = (idx1 + Random.Range(1, halfRingList.Length)) % halfRingList.Length;
+
+        SwitchCoroutineClientRpc(idx1, idx2);
+    }
+
+    [ClientRpc]
+    private void SwitchCoroutineClientRpc(int idx1, int idx2)
+    {
+        StartCoroutine(SwitchCoroutine(idx1, idx2));
+    }
+
+    private IEnumerator SwitchCoroutine(int idx1, int idx2)
+    {
+        // Validate indices
+        if (idx1 < 0 || idx1 >= halfRingList.Length || idx2 < 0 || idx2 >= halfRingList.Length)
+            yield break;
+
+        var haptics = FindObjectOfType<HapticsManager>();
+        if (haptics != null)
+        {
+            if (halfRingList[idx1] != null) haptics.PlayHapticsOnHand(halfRingList[idx1].hand, HapticType.Three);
+            if (halfRingList[idx2] != null) haptics.PlayHapticsOnHand(halfRingList[idx2].hand, HapticType.Three);
+        }
+
+        // Wait for three seconds
+        yield return new WaitForSeconds(colorSwitchDuration);
+
+        // Re-check before swapping
+        if (halfRingList[idx1] == null || halfRingList[idx2] == null)
+            yield break;
+
+        HalfRing a = halfRingList[idx1];
+        HalfRing b = halfRingList[idx2];
+
+        // Swap array entries
+        halfRingList[idx1] = b;
+        halfRingList[idx2] = a;
+
+        // If either is null, nothing more to do
+        if (a == null || b == null)
+            yield break;
+
+        // Swap world transforms (position, rotation)
+        a.transform.GetPositionAndRotation(out Vector3 posA, out Quaternion rotA);
+        b.transform.GetPositionAndRotation(out Vector3 posB, out Quaternion rotB);
+        
+        a.transform.SetPositionAndRotation(posB, rotB);
+        b.transform.SetPositionAndRotation(posA, rotA);
+
+        // Swap hands
+        HandData h1 = a.hand;
+        HandData h2 = b.hand;
+
+        a.hand = h2;
+        b.hand = h1;
+
+        // Ensure visual state is refreshed
+        // halfRingList[idx1]?.UpdateModels();
+        // halfRingList[idx2]?.UpdateModels();
     }
 }
