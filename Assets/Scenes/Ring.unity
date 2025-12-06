@@ -5955,7 +5955,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hapticClipOne: {fileID: 2460798210113038985, guid: 6c8f65e0de19b6f41923f45b90949414, type: 3}
-  hapticClipThree: {fileID: 0}
+  hapticClipThree: {fileID: 2460798210113038985, guid: 29487019bca61014996394e4a831897c, type: 3}
 --- !u!4 &872386139
 Transform:
   m_ObjectHideFlags: 0

@@ -5,7 +5,7 @@ using Oculus.Interaction.Input;
 using Unity.Netcode;
 using UnityEngine;
 
-public class HapticsTest : NetworkBehaviour
+public class HapticsManager : NetworkBehaviour
 {
     public HapticClip hapticClipOne;
     public HapticClip hapticClipThree;

@@ -56,7 +56,7 @@ public class FullRing : MonoBehaviour
 
     public void PlayHaptics()
     {
-        var haptics = FindObjectOfType<HapticsTest>();
+        var haptics = FindObjectOfType<HapticsManager>();
         if (haptics != null) {
             haptics.PlayHapticsOnHand(hand1, HapticType.One);
             haptics.PlayHapticsOnHand(hand2, HapticType.One);
