@@ -40,5 +40,7 @@ Material:
     m_Floats:
     - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
-    m_Colors: []
+    - _Edge_Threshold: 0.017
+    m_Colors:
+    - _Edge_Color: {r: 1, g: 0, b: 0.07017517, a: 0}
   m_BuildTextureStacks: []
