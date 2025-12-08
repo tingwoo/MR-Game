@@ -1,69 +1,81 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Unity.Netcode; // 引入 Netcode
+using Unity.Netcode;
 
-public class GameStatusController : NetworkBehaviour // 改成 NetworkBehaviour
+public class GameStatusController : NetworkBehaviour
 {
     [Header("必須連接的管理器")]
     public GameFlowManager gameFlowManager;
 
     [Header("教學設定")]
-    public int tutorialTargetTotal = 3;
-    // 使用 NetworkVariable 同步教學進度
+    public int tutorialTargetTotal = 6; // 預設設為 6，Manager 會再覆寫它
+    
+    // 教學進度 (NetworkVariable 自動同步)
     private NetworkVariable<int> netTutorialCount = new NetworkVariable<int>(0);
     public TextMeshProUGUI tutorialCountText;
 
-    [Header("遊戲設定")]
+    [Header("遊戲設定 (分數與體力)")]
     public float maxStamina = 100f;
-    public float staminaDrainRate = 5f;
-    public float staminaRecovery = 15f;
+    public float staminaDrainRate = 5f;  // 每秒扣血量
+    public float staminaRecovery = 15f;  // 抓到一隻回血量
+    public int scorePerSpirit = 100;     // 一隻幾分
 
-    // 使用 NetworkVariable 同步體力和分數
+    // 遊戲數據 (NetworkVariable 自動同步)
     private NetworkVariable<float> netCurrentStamina = new NetworkVariable<float>(100f);
     private NetworkVariable<int> netCurrentScore = new NetworkVariable<int>(0);
 
-    [Header("HUD")]
+    [Header("HUD (介面)")]
     public Image staminaFillImage;
     public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI finalScoreText;
+    public TextMeshProUGUI finalScoreText; // 結算畫面的數字
+
+    // 當連線建立時，初始化變數
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            netTutorialCount.Value = 0;
+            netCurrentScore.Value = 0;
+            netCurrentStamina.Value = maxStamina;
+        }
+        // 強制更新一次 UI
+        UpdateHUD();
+        UpdateTutorialUI();
+    }
 
     void Update()
     {
-        // 只有 Server 負責計算扣血邏輯
+        // Server 負責扣血邏輯 (只有在 Gameplay 狀態下)
         if (IsServer && gameFlowManager.currentNetworkState.Value == GameFlowManager.GameState.Gameplay)
         {
             DecreaseStaminaServer();
         }
 
-        // 所有人都負責更新 UI (讀取 NetworkVariable)
+        // Client & Server 都要負責更新 UI (從 NetworkVariable 讀值)
         UpdateHUD();
         UpdateTutorialUI();
     }
 
-    // --- 教學邏輯 ---
+    // ==========================================
+    //              教學模式邏輯
+    // ==========================================
 
     public void ResetTutorial()
     {
         if (IsServer) netTutorialCount.Value = 0;
+        UpdateTutorialUI();
     }
 
-    // 這會被 TutorialTarget 呼叫
+    // 被 TutorialTarget.cs 呼叫
     public void OnTutorialTargetCaptured()
     {
-        // 只有 Server 能修改數值
         if (IsServer)
         {
-            netTutorialCount.Value++;
-
-            if (netTutorialCount.Value >= tutorialTargetTotal)
-            {
-                Invoke("FinishTutorialServer", 1.0f);
-            }
+            HandleTutorialCapture();
         }
         else
         {
-            // 如果是 Client 抓到的，發送 RPC 告訴 Server
             SubmitTutorialCaptureServerRpc();
         }
     }
@@ -71,20 +83,33 @@ public class GameStatusController : NetworkBehaviour // 改成 NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void SubmitTutorialCaptureServerRpc()
     {
+        HandleTutorialCapture();
+    }
+
+    // 統一處理教學進度 (Server 端)
+    private void HandleTutorialCapture()
+    {
         netTutorialCount.Value++;
+        
+        Debug.Log($"教學進度: {netTutorialCount.Value}/{tutorialTargetTotal}");
+
         if (netTutorialCount.Value >= tutorialTargetTotal)
         {
+            // 延遲 1 秒後進入正式遊戲 (避免畫面切太快)
+            CancelInvoke("FinishTutorialServer");
             Invoke("FinishTutorialServer", 1.0f);
         }
     }
 
     private void FinishTutorialServer()
     {
-        // 透過 Manager 切換狀態
-        gameFlowManager.OnClick_SkipTutorial(); // 這裡其實是呼叫 ServerRpc
+        gameFlowManager.OnClick_SkipTutorial(); // 切換到 Gameplay
     }
 
-    // --- 遊戲邏輯 ---
+
+    // ==========================================
+    //              正式遊戲邏輯 (分數)
+    // ==========================================
 
     public void ResetGameplay()
     {
@@ -95,6 +120,36 @@ public class GameStatusController : NetworkBehaviour // 改成 NetworkBehaviour
         }
     }
 
+    // 被 SpiritDestroy.cs 呼叫 (即使是別人寫的腳本，也要透過這裡加分)
+    public void OnEnemyCaptured()
+    {
+        if (IsServer)
+        {
+            AddScoreServer();
+        }
+        else
+        {
+            RequestAddScoreServerRpc();
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RequestAddScoreServerRpc()
+    {
+        AddScoreServer();
+    }
+
+    private void AddScoreServer()
+    {
+        // 1. 加分
+        netCurrentScore.Value += scorePerSpirit;
+
+        // 2. 回血
+        netCurrentStamina.Value += staminaRecovery;
+        if (netCurrentStamina.Value > maxStamina) 
+            netCurrentStamina.Value = maxStamina;
+    }
+
     // Server 專用扣血
     void DecreaseStaminaServer()
     {
@@ -103,20 +158,14 @@ public class GameStatusController : NetworkBehaviour // 改成 NetworkBehaviour
         if (netCurrentStamina.Value <= 0)
         {
             netCurrentStamina.Value = 0;
-            // 通知 Manager 結束遊戲
-            // 這裡直接改 State 變數即可，Manager 會偵測到
-            // 但因為 Manager 已經有倒數機制，這裡可以雙重保險
+            // 血量歸零 -> 觸發 Game Over
+            gameFlowManager.TriggerGameOver(); 
         }
     }
 
-    public void OnEnemyCaptured()
-    {
-        // 暫略，邏輯同 TutorialTargetCaptured
-        // 如果是 Client 接到，要 ServerRpc 告知加分
-    }
-
-    // --- UI 更新 (所有人通用) ---
-    // 不需要 RPC，因為 NetworkVariable 會自動同步，我們只要讀取 .Value 即可
+    // ==========================================
+    //              UI 更新 (Visuals)
+    // ==========================================
 
     void UpdateTutorialUI()
     {
@@ -126,12 +175,15 @@ public class GameStatusController : NetworkBehaviour // 改成 NetworkBehaviour
 
     void UpdateHUD()
     {
+        // 更新血條
         if (staminaFillImage != null)
             staminaFillImage.fillAmount = netCurrentStamina.Value / maxStamina;
 
+        // 更新遊戲中分數
         if (scoreText != null)
             scoreText.text = $"Score: {netCurrentScore.Value}";
 
+        // 更新結算分數 (只顯示數字，配合你的圖片填空)
         if (finalScoreText != null)
             finalScoreText.text = $"{netCurrentScore.Value}";
     }

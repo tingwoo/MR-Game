@@ -174,16 +174,19 @@ public class GameFlowManager : NetworkBehaviour
         // 初始化狀態數值
         if (newState == GameState.Tutorial)
         {
-            netTutorialPageIndex.Value = 0; // 重置頁碼
+            netTutorialPageIndex.Value = 0;
         }
         else if (newState == GameState.Gameplay)
         {
-            // ⚠️ 注意：這裡原本有 3 秒結束的測試代碼。
-            // 既然現在你有 GameStatusController 來控制血量歸零結束，
-            // 建議把下面這兩行註解掉，讓遊戲能正常玩。
+            // ========== 【修改重點】 ==========
+            Debug.Log("正式遊戲開始！啟動 10 秒倒數...");
 
-            // CancelInvoke("TriggerGameOverServer");
-            // Invoke("TriggerGameOverServer", 3.0f); 
+            // 1. 取消可能存在的舊倒數
+            CancelInvoke("TriggerGameOverServer");
+
+            // 2. 設定 10 秒後自動執行 TriggerGameOverServer
+            Invoke("TriggerGameOverServer", 10.0f);
+            // ================================
         }
     }
 
@@ -197,15 +200,58 @@ public class GameFlowManager : NetworkBehaviour
         }
     }
 
+    // [ServerRpc(RequireOwnership = false)]
+    // private void SwitchToPracticeServerRpc()
+    // {
+    //     int spiritCount = tutorialSpiritPrefabs.Count;
+    //     statusController.tutorialTargetTotal = spiritCount;
+    //     for (int i = 0; i < spiritCount; i++)
+    //     {
+    //         var p = Instantiate(tutorialSpiritPrefabs[i]);
+    //         p.transform.position = new Vector3(0.5f * (i - (spiritCount - 1) * 0.5f), 1f, 1f);
+    //         p.Spawn();
+    //     }
+
+    //     // 通知所有人切換到練習模式 (Phase 2)
+    //     SwitchToPracticeClientRpc();
+
+    //     // 重置教學計數 (由 Server 執行)
+    //     if (statusController) statusController.ResetTutorial();
+    // }
+
     [ServerRpc(RequireOwnership = false)]
     private void SwitchToPracticeServerRpc()
     {
         int spiritCount = tutorialSpiritPrefabs.Count;
         statusController.tutorialTargetTotal = spiritCount;
+
+        // --- 排列設定參數 ---
+        int itemsPerRow = 3;   // 每排幾隻 (例如 3 隻就換行)
+        float spacingX = 0.4f; // 水平間距 (左右距離)
+        float spacingY = 0.3f; // 垂直間距 (上下距離)
+        float startHeight = 1.3f; // 第一排的高度 (大概眼睛高度往下)
+        float distanceZ = 1.0f;   // 距離玩家多遠
+        // ------------------
+
         for (int i = 0; i < spiritCount; i++)
         {
             var p = Instantiate(tutorialSpiritPrefabs[i]);
-            p.transform.position = new Vector3(0.5f * (i - (spiritCount - 1) * 0.5f), 1f, 1f);
+
+            // 1. 計算行列
+            int row = i / itemsPerRow; // 第幾排 (0, 1...)
+            int col = i % itemsPerRow; // 第幾列 (0, 1, 2...)
+
+            // 2. 計算 X 軸 (水平置中)
+            // (col - (該排總數 - 1) / 2) * 間距
+            // 這裡簡化：假設每排都是滿的，直接用 (itemsPerRow - 1) 來算中心點
+            float xPos = (col - (itemsPerRow - 1) * 0.5f) * spacingX;
+
+            // 3. 計算 Y 軸 (越後面的排越低)
+            float yPos = startHeight - (row * spacingY);
+
+            // 4. 設定位置
+            p.transform.position = new Vector3(xPos, yPos, distanceZ);
+
             p.Spawn();
         }
 
