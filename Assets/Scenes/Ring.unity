@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028301, g: 0.22571309, b: 0.30692127, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -7102,11 +7102,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddd0d811180e747608d13baf101df6ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: 0
-  explosionPrefab: {fileID: 0}
-  scoreAmount: 20
-  destroySound: {fileID: 0}
-  soundVolume: 1
 --- !u!135 &842946077
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -7750,11 +7745,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddd0d811180e747608d13baf101df6ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: 0
-  explosionPrefab: {fileID: 0}
-  scoreAmount: 20
-  destroySound: {fileID: 0}
-  soundVolume: 1
 --- !u!135 &967938406
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -7972,11 +7962,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddd0d811180e747608d13baf101df6ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: 0
-  explosionPrefab: {fileID: 0}
-  scoreAmount: 20
-  destroySound: {fileID: 0}
-  soundVolume: 1
 --- !u!135 &1001772362
 SphereCollider:
   m_ObjectHideFlags: 0
