@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
@@ -28,6 +30,8 @@ public class GameFlowManager : NetworkBehaviour
 
     // 2. 教學頁碼 (0, 1, 2...)
     private NetworkVariable<int> netTutorialPageIndex = new NetworkVariable<int>(0);
+
+    public List<NetworkObject> tutorialSpiritPrefabs;
 
     public enum GameState { Intro, Tutorial, Gameplay, GameOver }
 
@@ -196,6 +200,15 @@ public class GameFlowManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void SwitchToPracticeServerRpc()
     {
+        int spiritCount = tutorialSpiritPrefabs.Count;
+        statusController.tutorialTargetTotal = spiritCount;
+        for (int i = 0; i < spiritCount; i++)
+        {
+            var p = Instantiate(tutorialSpiritPrefabs[i]);
+            p.transform.position = new Vector3(0.5f * (i - (spiritCount - 1) * 0.5f), 1f, 1f);
+            p.Spawn();
+        }
+
         // 通知所有人切換到練習模式 (Phase 2)
         SwitchToPracticeClientRpc();
 
@@ -208,7 +221,7 @@ public class GameFlowManager : NetworkBehaviour
     {
         // 關閉說明，開啟練習
         if (tutorialPhase1_Instruction) tutorialPhase1_Instruction.SetActive(false);
-        if (tutorialPhase2_Practice) tutorialPhase2_Practice.SetActive(true);
+        // if (tutorialPhase2_Practice) tutorialPhase2_Practice.SetActive(true);
     }
 
     // Server 專用的倒數結束 (配合上面的 Invoke 使用，如果沒用 Invoke 則備用)
