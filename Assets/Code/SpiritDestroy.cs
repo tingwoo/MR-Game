@@ -1,7 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode;
 
 public class SpiritDestroy : NetworkBehaviour
 {
@@ -9,46 +7,43 @@ public class SpiritDestroy : NetworkBehaviour
 
     [Header("VFX References")]
     [SerializeField] private GameObject explosionPrefab;
-    [SerializeField] private float scoreAmount = 20f; 
 
-    // ==========================================
-    // 【新增】音效設定欄位
-    // ==========================================
+    // 分數設定現在由 GameStatusController 統一管理，這裡只是為了相容舊設定
+    // [SerializeField] private float scoreAmount = 20f; 
+
     [Header("Audio Settings")]
-    [Tooltip("請將音效檔 (AudioClip) 拉入這裡")]
-    [SerializeField] private AudioClip destroySound; 
-
-    [Range(0f, 1f)] 
-    [SerializeField] private float soundVolume = 1.0f; // 音量大小調整
-    // ==========================================
+    [SerializeField] private AudioClip destroySound;
+    [Range(0f, 1f)][SerializeField] private float soundVolume = 1.0f;
 
     private void OnTriggerEnter(Collider other)
     {
-        // 1. Server Logic Only: Collision logic is authoritative on the server
+        // 1. 只有 Server 處理碰撞邏輯
         if (!IsServer) return;
 
+        // 檢查是否撞到 FullRing 且顏色正確
         if (other.CompareTag("FullRing") && other.gameObject.GetComponent<FullRing>().color == color)
         {
             Color visualColor = ConvertGameColorToUnityColor(color);
-            
-            // 2. Visuals: Tell all clients to spawn explosion VFX AND Play Sound
+
+            // 2. 視覺與音效同步
             SpawnExplosionClientRpc(transform.position, visualColor);
 
-            // 3. Haptics: Tell the full ring to play haptics on its two component hands
+            // 3. 手把震動
             other.gameObject.GetComponent<FullRing>().PlayHaptics();
 
-            // 4. Logic: Add score directly on the Server
-            if (StaminaBarController.Instance != null)
+            // 4. 🔥【關鍵修正】呼叫 GameStatusController 加分
+            var status = FindObjectOfType<GameStatusController>();
+            if (status != null)
             {
-                StaminaBarController.Instance.AddStaminaServer(scoreAmount);
+                status.OnEnemyCaptured();
             }
             else
             {
-                Debug.LogWarning("StaminaBarController Instance not found!");
+                Debug.LogWarning("找不到 GameStatusController，無法加分！");
             }
 
-            // 4. Cleanup: Despawn the network object
-            if (NetworkObject != null && NetworkObject.IsSpawned) 
+            // 5. 銷毀物件
+            if (NetworkObject != null && NetworkObject.IsSpawned)
                 NetworkObject.Despawn();
             else
                 Destroy(gameObject);
@@ -58,24 +53,15 @@ public class SpiritDestroy : NetworkBehaviour
     [ClientRpc]
     private void SpawnExplosionClientRpc(Vector3 position, Color impactColor)
     {
-        // Instantiate the visual effect locally on each client
         if (explosionPrefab != null)
         {
             GameObject boom = Instantiate(explosionPrefab, position, Quaternion.identity);
             ExplosionController controller = boom.GetComponent<ExplosionController>();
-            if (controller != null)
-            {
-                controller.Initialize(impactColor);
-            }
+            if (controller != null) controller.Initialize(impactColor);
         }
 
-        // ==========================================
-        // 【新增】在客戶端播放音效
-        // ==========================================
         if (destroySound != null)
         {
-            // PlayClipAtPoint 會在指定位置建立一個暫時的 AudioSource，
-            // 播完後自動銷毀，這樣就算精靈本體被 Destroy 了，聲音也會播完。
             AudioSource.PlayClipAtPoint(destroySound, position, soundVolume);
         }
     }
