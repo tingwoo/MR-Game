@@ -249,8 +249,8 @@ public class GameFlowManager : NetworkBehaviour
         if (statusController) statusController.tutorialTargetTotal = spiritCount;
 
         int itemsPerRow = 3;
-        float spacingX = 0.4f;
-        float spacingY = 0.3f;
+        float spacingX = 0.5f;
+        float spacingY = 0.5f;
         float startHeight = 1.3f;
         float distanceZ = 1.0f;
 
