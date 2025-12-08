@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028301, g: 0.22571309, b: 0.30692127, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3768,6 +3768,11 @@ MonoBehaviour:
     m_InternalValue: 0
   tutorialSpiritPrefabs:
   - {fileID: -2979481547691788222, guid: b53d05254b0ec4887936d13c8c669925, type: 3}
+  - {fileID: -4247347464057515437, guid: ac05375db2f27452cb4d83ce3526b81b, type: 3}
+  - {fileID: 5123481745438461234, guid: c9fb794d4156a4e10af075dd31202a41, type: 3}
+  - {fileID: 1636244009399299581, guid: 544f5c28f71364726ab280a3d96b3db4, type: 3}
+  - {fileID: 6250162679821475907, guid: 9dd7d689d0deb405cac937ba7ade942b, type: 3}
+  - {fileID: -7944325458957795660, guid: 68cea1b10717d410d950b986fa21cafd, type: 3}
 --- !u!114 &1353419055
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3781,7 +3786,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameFlowManager: {fileID: 1353419054}
-  tutorialTargetTotal: 1
+  tutorialTargetTotal: 6
   tutorialCountText: {fileID: 0}
   maxStamina: 100
   staminaDrainRate: 5
