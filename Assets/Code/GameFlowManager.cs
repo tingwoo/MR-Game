@@ -20,6 +20,7 @@ public class GameFlowManager : NetworkBehaviour
     [Header("Scripts & Objects")]
     public GameStatusController statusController;
 
+
     // 🔴【修改】改用腳本控制，移除原本的 GameObject enemySpawner
     public FairyThrowerNetwork enemySpawnerScript;
     public FairyDifficultyController difficultyController;
@@ -152,7 +153,7 @@ public class GameFlowManager : NetworkBehaviour
                 if (enemySpawnerScript)
                 {
                     enemySpawnerScript.autoSpawn = true;
-                    if (IsServer) enemySpawnerScript.ThrowOne(); // 立刻先生一隻
+                    // if (IsServer) enemySpawnerScript.ThrowOne(); // 立刻先生一隻
                 }
                 if (difficultyController)
                 {

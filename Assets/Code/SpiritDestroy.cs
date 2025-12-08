@@ -5,60 +5,74 @@ using UnityEngine;
 
 public class SpiritDestroy : NetworkBehaviour
 {
+    [Header("Base Settings")]
     public GameColor color;
 
     [Header("VFX References")]
-    [SerializeField] private GameObject explosionPrefab;
-    [SerializeField] private float scoreAmount = 20f; 
+    [SerializeField] protected GameObject explosionPrefab;
+    [SerializeField] protected float scoreAmount = 20f; 
 
-    // ==========================================
-    // 【新增】音效設定欄位
-    // ==========================================
     [Header("Audio Settings")]
-    [Tooltip("請將音效檔 (AudioClip) 拉入這裡")]
-    [SerializeField] private AudioClip destroySound; 
+    [SerializeField] protected AudioClip destroySound; 
 
     [Range(0f, 1f)] 
-    [SerializeField] private float soundVolume = 1.0f; // 音量大小調整
-    // ==========================================
+    [SerializeField] protected float soundVolume = 1.0f;
 
-    private void OnTriggerEnter(Collider other)
+    // Change to protected virtual so children can completely override if needed, 
+    // though usually they will just override OnContactLogic.
+    protected virtual void OnTriggerEnter(Collider other)
     {
-        // 1. Server Logic Only: Collision logic is authoritative on the server
+        // 1. Server Logic Only
         if (!IsServer) return;
 
+        // Shared Collision Validation
         if (other.CompareTag("FullRing") && other.gameObject.GetComponent<FullRing>().color == color)
         {
-            Color visualColor = ConvertGameColorToUnityColor(color);
-            
-            // 2. Visuals: Tell all clients to spawn explosion VFX AND Play Sound
-            SpawnExplosionClientRpc(transform.position, visualColor);
+            HandleCapture(other.gameObject);
+        }
+    }
 
-            // 3. Haptics: Tell the full ring to play haptics on its two component hands
-            other.gameObject.GetComponent<FullRing>().PlayHaptics();
+    protected void HandleCapture(GameObject ringObject)
+    {
+        Color visualColor = ConvertGameColorToUnityColor(color);
+        
+        // 2. Visuals: VFX AND Sound (via RPC)
+        SpawnExplosionClientRpc(transform.position, visualColor);
 
-            // 4. Logic: Add score directly on the Server
-            if (StaminaBarController.Instance != null)
-            {
-                StaminaBarController.Instance.AddStaminaServer(scoreAmount);
-            }
-            else
-            {
-                Debug.LogWarning("StaminaBarController Instance not found!");
-            }
+        // 3. Haptics: Trigger haptics on the ring handles
+        var ringScript = ringObject.GetComponent<FullRing>();
+        if (ringScript != null)
+        {
+            ringScript.PlayHaptics();
+        }
 
-            // 4. Cleanup: Despawn the network object
-            if (NetworkObject != null && NetworkObject.IsSpawned) 
-                NetworkObject.Despawn();
-            else
-                Destroy(gameObject);
+        // 4. Logic: Execute specific gameplay consequences (Score vs Tutorial)
+        OnContactLogic();
+
+        // 5. Cleanup: Despawn
+        if (NetworkObject != null && NetworkObject.IsSpawned) 
+            NetworkObject.Despawn();
+        else
+            Destroy(gameObject);
+    }
+
+    // Virtual method to be overridden by TutorialTarget
+    protected virtual void OnContactLogic()
+    {
+        // Default behavior: Add Score / Stamina
+        if (StaminaBarController.Instance != null)
+        {
+            StaminaBarController.Instance.AddStaminaServer(scoreAmount);
+        }
+        else
+        {
+            Debug.LogWarning("StaminaBarController Instance not found!");
         }
     }
 
     [ClientRpc]
     private void SpawnExplosionClientRpc(Vector3 position, Color impactColor)
     {
-        // Instantiate the visual effect locally on each client
         if (explosionPrefab != null)
         {
             GameObject boom = Instantiate(explosionPrefab, position, Quaternion.identity);
@@ -69,18 +83,14 @@ public class SpiritDestroy : NetworkBehaviour
             }
         }
 
-        // ==========================================
-        // 【新增】在客戶端播放音效
-        // ==========================================
         if (destroySound != null)
         {
-            // PlayClipAtPoint 會在指定位置建立一個暫時的 AudioSource，
-            // 播完後自動銷毀，這樣就算精靈本體被 Destroy 了，聲音也會播完。
             AudioSource.PlayClipAtPoint(destroySound, position, soundVolume);
         }
     }
 
-    private Color ConvertGameColorToUnityColor(GameColor gameColor)
+    // Helper to convert colors
+    protected Color ConvertGameColorToUnityColor(GameColor gameColor)
     {
         switch (gameColor)
         {
