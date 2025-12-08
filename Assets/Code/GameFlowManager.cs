@@ -152,7 +152,7 @@ public class GameFlowManager : NetworkBehaviour
                 if (enemySpawnerScript)
                 {
                     enemySpawnerScript.autoSpawn = true;
-                    if (IsServer) enemySpawnerScript.ThrowOne(); // 立刻先生一隻
+                    // if (IsServer) enemySpawnerScript.ThrowOne(); // 立刻先生一隻
                 }
                 if (difficultyController)
                 {
