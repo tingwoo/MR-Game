@@ -224,10 +224,13 @@ public class GameFlowManager : NetworkBehaviour
         }
         else if (newState == GameState.Gameplay)
         {
-            Debug.Log("正式遊戲開始！啟動 10 秒倒數...");
-            CancelInvoke("TriggerGameOverServer");
-            // 這裡可以根據您的需求，看是要倒數還是等血量歸零
-            // Invoke("TriggerGameOverServer", 10.0f); 
+            Debug.Log("正式遊戲開始！");
+
+            // 🔥【關鍵修正 1】重置遊戲數據 (補滿血、分數歸零)
+            if (statusController) 
+            {
+                statusController.ResetGameplay();
+            }
         }
     }
 
