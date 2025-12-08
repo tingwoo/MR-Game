@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
@@ -12,36 +10,30 @@ public class GameFlowManager : NetworkBehaviour
     public GameObject uiGameOverGroup;
 
     [Header("Tutorial Sub-Phases (教學子階段)")]
-    public GameObject tutorialPhase1_Instruction; // 閱讀區 (放 Canvas)
-    public GameObject tutorialPhase2_Practice;    // 練習區 (放小精靈)
+    public GameObject tutorialPhase1_Instruction; 
+    public GameObject tutorialPhase2_Practice;    
 
-    [Header("Tutorial Pages (教學幻燈片 - 合併功能)")]
-    // ⚠️ 請依序拖入: Page1_Rings, Page2_Colors, Page3_YourTurn
-    public GameObject[] tutorialPages;
+    [Header("Tutorial Pages (教學幻燈片)")]
+    public GameObject[] tutorialPages; 
 
     [Header("Scripts & Objects")]
     public GameStatusController statusController;
-    public GameObject enemySpawner; // 這裡是你的 FairyThrower
+    public GameObject enemySpawner; 
 
-    // --- 網路變數同步區 ---
-
-    // 1. 遊戲大狀態 (Intro, Tutorial, Gameplay, GameOver)
+    // --- 網路變數 ---
     public NetworkVariable<GameState> currentNetworkState = new NetworkVariable<GameState>(GameState.Intro);
-
-    // 2. 教學頁碼 (0, 1, 2...)
     private NetworkVariable<int> netTutorialPageIndex = new NetworkVariable<int>(0);
-
-    public List<NetworkObject> tutorialSpiritPrefabs;
+    
+    // 用來生怪的列表
+    public System.Collections.Generic.List<NetworkObject> tutorialSpiritPrefabs;
 
     public enum GameState { Intro, Tutorial, Gameplay, GameOver }
 
     public override void OnNetworkSpawn()
     {
-        // 當連線建立時，監聽狀態變化
         currentNetworkState.OnValueChanged += OnStateChanged;
         netTutorialPageIndex.OnValueChanged += OnTutorialPageChanged;
 
-        // 初始化
         if (IsServer)
         {
             currentNetworkState.Value = GameState.Intro;
@@ -49,13 +41,91 @@ public class GameFlowManager : NetworkBehaviour
         }
         else
         {
-            // Client 進來時手動更新一次畫面
             UpdateUIState(currentNetworkState.Value);
             UpdateTutorialPageVisuals(netTutorialPageIndex.Value);
         }
     }
 
-    // --- 狀態監聽與更新 ---
+    // =========================================================
+    // 🔥 新增：按鍵輸入監聽 (取代射線點擊)
+    // =========================================================
+    void Update()
+    {
+        // 只有「本地玩家」需要處理輸入 (Server 還是 Client 都可以是玩家)
+        // 但因為輸入是用來發送 RPC 的，我們只需要確保不要重複執行
+        // 這裡我們簡單判定：任何人按按鈕都會嘗試觸發自己的邏輯
+
+        // 1. 偵測主要按鍵 (右手板機 Trigger) -> 用於 Next / OK / Restart
+        if (OVRInput.GetDown(OVRInput.Button.PrimaryIndexTrigger) || OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger) || Input.GetKeyDown(KeyCode.Space))
+        {
+            HandlePrimaryInput();
+        }
+
+        // 2. 偵測次要按鍵 (右手 B 鍵 或 左手 Y 鍵) -> 用於 Skip / Quit
+        if (OVRInput.GetDown(OVRInput.Button.Two) || OVRInput.GetDown(OVRInput.Button.Four) || Input.GetKeyDown(KeyCode.Escape))
+        {
+            HandleSecondaryInput();
+        }
+    }
+
+    // 處理「確定 / 下一步」類型的動作
+    void HandlePrimaryInput()
+    {
+        switch (currentNetworkState.Value)
+        {
+            case GameState.Intro:
+                // Intro 狀態：按板機 -> 開始遊戲
+                OnClick_StartGame();
+                break;
+
+            case GameState.Tutorial:
+                // Tutorial 狀態：按板機 -> 下一頁
+                // 判斷是否在 Phase 1 (看投影片階段)
+                if (tutorialPhase1_Instruction != null && tutorialPhase1_Instruction.activeSelf)
+                {
+                    // 檢查是否為最後一頁
+                    if (tutorialPages != null && netTutorialPageIndex.Value >= tutorialPages.Length - 1)
+                    {
+                        // 最後一頁了 -> 按板機變成 "OK" (進入練習)
+                        OnClick_TutorialOK();
+                    }
+                    else
+                    {
+                        // 還沒到最後一頁 -> 下一頁
+                        OnClick_NextTutorialPage();
+                    }
+                }
+                break;
+            
+            case GameState.Gameplay:
+                // 遊戲中按板機通常是抓怪，不處理 UI
+                break;
+
+            case GameState.GameOver:
+                // 結算狀態：按板機 -> Restart
+                OnClick_Restart();
+                break;
+        }
+    }
+
+    // 處理「取消 / 跳過 / 退出」類型的動作
+    void HandleSecondaryInput()
+    {
+        switch (currentNetworkState.Value)
+        {
+            case GameState.Tutorial:
+                // Tutorial 狀態：按 B 鍵 -> Skip (跳過教學直接玩)
+                OnClick_SkipTutorial();
+                break;
+
+            case GameState.GameOver:
+                // 結算狀態：按 B 鍵 -> Quit (退出遊戲)
+                OnClick_Quit();
+                break;
+        }
+    }
+
+    // =========================================================
 
     private void OnStateChanged(GameState oldState, GameState newState)
     {
@@ -64,60 +134,47 @@ public class GameFlowManager : NetworkBehaviour
 
     private void OnTutorialPageChanged(int oldIndex, int newIndex)
     {
-        // 只有在教學模式下才需要更新頁面
         if (currentNetworkState.Value == GameState.Tutorial)
         {
             UpdateTutorialPageVisuals(newIndex);
         }
     }
 
-    // --- 視覺處理邏輯 (Visuals) ---
-
     private void UpdateUIState(GameState state)
     {
-        // 1. 先全部關閉
         if (uiIntroGroup) uiIntroGroup.SetActive(false);
         if (uiTutorialGroup) uiTutorialGroup.SetActive(false);
         if (uiHudGroup) uiHudGroup.SetActive(false);
         if (uiGameOverGroup) uiGameOverGroup.SetActive(false);
         if (enemySpawner) enemySpawner.SetActive(false);
 
-        // 2. 根據狀態開啟對應 UI
         switch (state)
         {
             case GameState.Intro:
                 if (uiIntroGroup) uiIntroGroup.SetActive(true);
-                Debug.Log("系統: 切換至 Intro");
                 break;
 
             case GameState.Tutorial:
                 if (uiTutorialGroup) uiTutorialGroup.SetActive(true);
-
-                // 進入教學時，預設顯示 Phase 1 (說明)，隱藏 Phase 2 (練習)
                 if (tutorialPhase1_Instruction) tutorialPhase1_Instruction.SetActive(true);
                 if (tutorialPhase2_Practice) tutorialPhase2_Practice.SetActive(false);
-
-                // 確保從第一頁開始
                 UpdateTutorialPageVisuals(netTutorialPageIndex.Value);
-                Debug.Log("系統: 切換至 Tutorial (Phase 1)");
                 break;
 
             case GameState.Gameplay:
                 if (uiHudGroup) uiHudGroup.SetActive(true);
-                if (enemySpawner) enemySpawner.SetActive(true); // 開啟生怪器
-                Debug.Log("系統: 切換至 Gameplay");
+                // 這裡原本有設定生怪器，現在讓它在流程中被呼叫
+                if (enemySpawner) enemySpawner.SetActive(true);
                 break;
 
             case GameState.GameOver:
                 if (uiGameOverGroup) uiGameOverGroup.SetActive(true);
-                Debug.Log("系統: 切換至 GameOver");
                 break;
         }
     }
 
     private void UpdateTutorialPageVisuals(int index)
     {
-        // 迴圈檢查每一頁，只有對應 index 的頁面打開，其他全關
         if (tutorialPages != null)
         {
             for (int i = 0; i < tutorialPages.Length; i++)
@@ -128,21 +185,18 @@ public class GameFlowManager : NetworkBehaviour
         }
     }
 
-    // --- 按鈕點擊事件 (UI Button OnClick) ---
+    // --- 按鈕功能 (保留原本的邏輯，供 Update 呼叫) ---
 
     public void OnClick_StartGame()
     {
-        // 開始遊戲 -> 進入教學模式
         RequestStateChangeServerRpc(GameState.Tutorial);
     }
 
-    // 新增：教學換頁按鈕 (綁定給 Page1 和 Page2 的 Button_Next)
     public void OnClick_NextTutorialPage()
     {
         RequestNextTutorialPageServerRpc();
     }
 
-    // 教學 OK 按鈕 (綁定給 Page3 的 Button_OK)
     public void OnClick_TutorialOK()
     {
         SwitchToPracticeServerRpc();
@@ -155,138 +209,92 @@ public class GameFlowManager : NetworkBehaviour
 
     public void OnClick_Restart()
     {
-        // 重玩 -> 回到 Intro
         RequestStateChangeServerRpc(GameState.Intro);
     }
 
     public void OnClick_Quit()
     {
         Application.Quit();
+        // 如果是在編輯器模式，也停止播放
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #endif
     }
 
-    // --- RPC 網路溝通區 (Logic) ---
+    // --- RPC 網路溝通區 ---
 
     [ServerRpc(RequireOwnership = false)]
     private void RequestStateChangeServerRpc(GameState newState)
     {
         currentNetworkState.Value = newState;
 
-        // 初始化狀態數值
         if (newState == GameState.Tutorial)
         {
             netTutorialPageIndex.Value = 0;
         }
         else if (newState == GameState.Gameplay)
         {
-            // ========== 【修改重點】 ==========
             Debug.Log("正式遊戲開始！啟動 10 秒倒數...");
-
-            // 1. 取消可能存在的舊倒數
             CancelInvoke("TriggerGameOverServer");
-
-            // 2. 設定 10 秒後自動執行 TriggerGameOverServer
-            Invoke("TriggerGameOverServer", 10.0f);
-            // ================================
+            Invoke("TriggerGameOverServer", 10.0f); 
         }
     }
 
     [ServerRpc(RequireOwnership = false)]
     private void RequestNextTutorialPageServerRpc()
     {
-        // 如果還沒到最後一頁，就 +1
         if (tutorialPages != null && netTutorialPageIndex.Value < tutorialPages.Length - 1)
         {
             netTutorialPageIndex.Value++;
         }
     }
 
-    // [ServerRpc(RequireOwnership = false)]
-    // private void SwitchToPracticeServerRpc()
-    // {
-    //     int spiritCount = tutorialSpiritPrefabs.Count;
-    //     statusController.tutorialTargetTotal = spiritCount;
-    //     for (int i = 0; i < spiritCount; i++)
-    //     {
-    //         var p = Instantiate(tutorialSpiritPrefabs[i]);
-    //         p.transform.position = new Vector3(0.5f * (i - (spiritCount - 1) * 0.5f), 1f, 1f);
-    //         p.Spawn();
-    //     }
-
-    //     // 通知所有人切換到練習模式 (Phase 2)
-    //     SwitchToPracticeClientRpc();
-
-    //     // 重置教學計數 (由 Server 執行)
-    //     if (statusController) statusController.ResetTutorial();
-    // }
-
     [ServerRpc(RequireOwnership = false)]
     private void SwitchToPracticeServerRpc()
     {
+        // 生成教學小精靈 (排列成矩陣)
         int spiritCount = tutorialSpiritPrefabs.Count;
-        statusController.tutorialTargetTotal = spiritCount;
+        if(statusController) statusController.tutorialTargetTotal = spiritCount;
 
-        // --- 排列設定參數 ---
-        int itemsPerRow = 3;   // 每排幾隻 (例如 3 隻就換行)
-        float spacingX = 0.4f; // 水平間距 (左右距離)
-        float spacingY = 0.3f; // 垂直間距 (上下距離)
-        float startHeight = 1.3f; // 第一排的高度 (大概眼睛高度往下)
-        float distanceZ = 1.0f;   // 距離玩家多遠
-        // ------------------
+        int itemsPerRow = 3;   
+        float spacingX = 0.4f; 
+        float spacingY = 0.3f; 
+        float startHeight = 1.3f; 
+        float distanceZ = 1.0f;   
 
         for (int i = 0; i < spiritCount; i++)
         {
             var p = Instantiate(tutorialSpiritPrefabs[i]);
+            
+            int row = i / itemsPerRow; 
+            int col = i % itemsPerRow; 
 
-            // 1. 計算行列
-            int row = i / itemsPerRow; // 第幾排 (0, 1...)
-            int col = i % itemsPerRow; // 第幾列 (0, 1, 2...)
-
-            // 2. 計算 X 軸 (水平置中)
-            // (col - (該排總數 - 1) / 2) * 間距
-            // 這裡簡化：假設每排都是滿的，直接用 (itemsPerRow - 1) 來算中心點
             float xPos = (col - (itemsPerRow - 1) * 0.5f) * spacingX;
-
-            // 3. 計算 Y 軸 (越後面的排越低)
             float yPos = startHeight - (row * spacingY);
 
-            // 4. 設定位置
             p.transform.position = new Vector3(xPos, yPos, distanceZ);
 
             p.Spawn();
         }
 
-        // 通知所有人切換到練習模式 (Phase 2)
         SwitchToPracticeClientRpc();
-
-        // 重置教學計數 (由 Server 執行)
         if (statusController) statusController.ResetTutorial();
     }
 
     [ClientRpc]
     private void SwitchToPracticeClientRpc()
     {
-        // 關閉說明，開啟練習
         if (tutorialPhase1_Instruction) tutorialPhase1_Instruction.SetActive(false);
-        // if (tutorialPhase2_Practice) tutorialPhase2_Practice.SetActive(true);
+        // Phase 2 練習區不需要特別開 UI，因為精靈是 3D 物件
     }
 
-    // Server 專用的倒數結束 (配合上面的 Invoke 使用，如果沒用 Invoke 則備用)
-    public void TriggerGameOverServer() // 改成 Public 讓 StatusController 可以呼叫
+    public void TriggerGameOverServer() 
     {
         currentNetworkState.Value = GameState.GameOver;
     }
-
-    // 提供給 GameStatusController 呼叫的接口 (因為它在 Client 端也可能需要發起)
+    
     public void TriggerGameOver()
     {
-        if (IsServer)
-        {
-            TriggerGameOverServer();
-        }
-        else
-        {
-            // 如果是 Client 發現血量歸零，可以寫一個 ServerRpc 來通知
-            // 但目前的架構是 Server 算血量，所以 Server 會自己呼叫 TriggerGameOverServer
-        }
+        if (IsServer) TriggerGameOverServer();
     }
 }
