@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028301, g: 0.22571309, b: 0.30692127, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -8333,7 +8333,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1131281547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8370,7 +8370,7 @@ MonoBehaviour:
     weight: 1
   - prefab: {fileID: 178657619044104507, guid: 1ddaa235b5008b9428b42ec53cc96177, type: 3}
     weight: 1
-  autoSpawn: 1
+  autoSpawn: 0
   spawnsPerSecond: 0.3
   drawGizmos: 1
   throwKey: 32
@@ -13759,6 +13759,7 @@ MonoBehaviour:
   uiTutorialGroup: {fileID: 864520549}
   uiHudGroup: {fileID: 1898801452}
   uiGameOverGroup: {fileID: 1988738389}
+  uiTunnelCanvas: {fileID: 1900293737}
   tutorialPhase1_Instruction: {fileID: 1428728642}
   tutorialPhase2_Practice: {fileID: 1889658615}
   tutorialPages:
@@ -13766,7 +13767,8 @@ MonoBehaviour:
   - {fileID: 983854988}
   - {fileID: 2046093873}
   statusController: {fileID: 1353419055}
-  enemySpawner: {fileID: 1131281546}
+  enemySpawnerScript: {fileID: 1131281547}
+  difficultyController: {fileID: 0}
   currentNetworkState:
     m_InternalValue: 0
   tutorialSpiritPrefabs:

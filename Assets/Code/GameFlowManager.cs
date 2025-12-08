@@ -8,6 +8,7 @@ public class GameFlowManager : NetworkBehaviour
     public GameObject uiTutorialGroup;
     public GameObject uiHudGroup;
     public GameObject uiGameOverGroup;
+    public GameObject uiTunnelCanvas;
 
     [Header("Tutorial Sub-Phases (教學子階段)")]
     public GameObject tutorialPhase1_Instruction;
@@ -18,7 +19,10 @@ public class GameFlowManager : NetworkBehaviour
 
     [Header("Scripts & Objects")]
     public GameStatusController statusController;
-    public GameObject enemySpawner;
+
+    // 🔴【修改】改用腳本控制，移除原本的 GameObject enemySpawner
+    public FairyThrowerNetwork enemySpawnerScript;
+    public FairyDifficultyController difficultyController;
 
     // --- 網路變數 ---
     public NetworkVariable<GameState> currentNetworkState = new NetworkVariable<GameState>(GameState.Intro);
@@ -45,82 +49,62 @@ public class GameFlowManager : NetworkBehaviour
         }
     }
 
-    // =========================================================
-    // 🔥 按鍵輸入監聽 (A鍵 與 B鍵)
-    // =========================================================
     void Update()
     {
-        // 1. 偵測確認鍵：Button A (右手) 或 Button X (左手) 或 鍵盤空白鍵
-        // 功能：開始、下一頁、OK、Restart
+        // 1. 偵測確認鍵 (A鍵)
         if (OVRInput.GetDown(OVRInput.Button.One) || Input.GetKeyDown(KeyCode.Space))
         {
-            HandleConfirmInput(); // 處理 A 鍵邏輯
+            HandleConfirmInput();
         }
 
-        // 2. 偵測取消/跳過鍵：Button B (右手) 或 Button Y (左手) 或 鍵盤 Esc
-        // 功能：Skip、Quit
+        // 2. 偵測取消鍵 (B鍵)
         if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.Escape))
         {
-            HandleCancelInput(); // 處理 B 鍵邏輯
+            HandleCancelInput();
         }
     }
 
-    // --- A 鍵邏輯 (正面選項) ---
     void HandleConfirmInput()
     {
         switch (currentNetworkState.Value)
         {
             case GameState.Intro:
-                // Intro: 按 A 開始遊戲
                 OnClick_StartGame();
                 break;
 
             case GameState.Tutorial:
-                // Tutorial: 按 A 下一頁 / OK
                 if (tutorialPhase1_Instruction != null && tutorialPhase1_Instruction.activeSelf)
                 {
                     if (tutorialPages != null && netTutorialPageIndex.Value >= tutorialPages.Length - 1)
                     {
-                        // 最後一頁 -> OK (進練習)
                         OnClick_TutorialOK();
                     }
                     else
                     {
-                        // 還沒看完 -> 下一頁
                         OnClick_NextTutorialPage();
                     }
                 }
                 break;
 
-            case GameState.Gameplay:
-                // 遊戲中按 A 通常是抓東西，這裡不處理 UI
-                break;
-
             case GameState.GameOver:
-                // 【您的需求】GameOver: 按 A 重玩 (Restart)
                 OnClick_Restart();
                 break;
         }
     }
 
-    // --- B 鍵邏輯 (負面選項) ---
     void HandleCancelInput()
     {
         switch (currentNetworkState.Value)
         {
             case GameState.Tutorial:
-                // 【您的需求】Tutorial: 按 B 跳過 (Skip)
                 OnClick_SkipTutorial();
                 break;
 
             case GameState.GameOver:
-                // GameOver: 按 B 退出 (Quit)
                 OnClick_Quit();
                 break;
         }
     }
-
-    // =========================================================
 
     private void OnStateChanged(GameState oldState, GameState newState)
     {
@@ -135,13 +119,18 @@ public class GameFlowManager : NetworkBehaviour
         }
     }
 
+    // 🔴【關鍵修改】UI 狀態切換邏輯
     private void UpdateUIState(GameState state)
     {
+        // 1. 關閉所有 UI
         if (uiIntroGroup) uiIntroGroup.SetActive(false);
         if (uiTutorialGroup) uiTutorialGroup.SetActive(false);
         if (uiHudGroup) uiHudGroup.SetActive(false);
         if (uiGameOverGroup) uiGameOverGroup.SetActive(false);
-        if (enemySpawner) enemySpawner.SetActive(false);
+        if (uiTunnelCanvas) uiTunnelCanvas.SetActive(false);
+        
+        // 2. 預設「關閉生怪功能」(但物件保持開啟)
+        if (enemySpawnerScript) enemySpawnerScript.autoSpawn = false;
 
         switch (state)
         {
@@ -158,7 +147,17 @@ public class GameFlowManager : NetworkBehaviour
 
             case GameState.Gameplay:
                 if (uiHudGroup) uiHudGroup.SetActive(true);
-                if (enemySpawner) enemySpawner.SetActive(true);
+                if (uiTunnelCanvas) uiTunnelCanvas.SetActive(true);
+                // 🔴【關鍵】進入遊戲，開啟自動生怪，並重置難度
+                if (enemySpawnerScript)
+                {
+                    enemySpawnerScript.autoSpawn = true;
+                    if (IsServer) enemySpawnerScript.ThrowOne(); // 立刻先生一隻
+                }
+                if (difficultyController)
+                {
+                    difficultyController.ResetDifficulty();
+                }
                 break;
 
             case GameState.GameOver:
@@ -179,7 +178,7 @@ public class GameFlowManager : NetworkBehaviour
         }
     }
 
-    // --- 按鈕功能 (RPC 入口) ---
+    // --- RPC ---
 
     public void OnClick_StartGame()
     {
@@ -214,8 +213,6 @@ public class GameFlowManager : NetworkBehaviour
 #endif
     }
 
-    // --- RPC 網路溝通區 ---
-
     [ServerRpc(RequireOwnership = false)]
     private void RequestStateChangeServerRpc(GameState newState)
     {
@@ -229,7 +226,8 @@ public class GameFlowManager : NetworkBehaviour
         {
             Debug.Log("正式遊戲開始！啟動 10 秒倒數...");
             CancelInvoke("TriggerGameOverServer");
-            Invoke("TriggerGameOverServer", 10.0f);
+            // 這裡可以根據您的需求，看是要倒數還是等血量歸零
+            // Invoke("TriggerGameOverServer", 10.0f); 
         }
     }
 
@@ -257,15 +255,12 @@ public class GameFlowManager : NetworkBehaviour
         for (int i = 0; i < spiritCount; i++)
         {
             var p = Instantiate(tutorialSpiritPrefabs[i]);
-
             int row = i / itemsPerRow;
             int col = i % itemsPerRow;
-
             float xPos = (col - (itemsPerRow - 1) * 0.5f) * spacingX;
             float yPos = startHeight - (row * spacingY);
 
             p.transform.position = new Vector3(xPos, yPos, distanceZ);
-
             p.Spawn();
         }
 
