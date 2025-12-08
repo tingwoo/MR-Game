@@ -10,21 +10,20 @@ public class GameFlowManager : NetworkBehaviour
     public GameObject uiGameOverGroup;
 
     [Header("Tutorial Sub-Phases (教學子階段)")]
-    public GameObject tutorialPhase1_Instruction; 
-    public GameObject tutorialPhase2_Practice;    
+    public GameObject tutorialPhase1_Instruction;
+    public GameObject tutorialPhase2_Practice;
 
     [Header("Tutorial Pages (教學幻燈片)")]
-    public GameObject[] tutorialPages; 
+    public GameObject[] tutorialPages;
 
     [Header("Scripts & Objects")]
     public GameStatusController statusController;
-    public GameObject enemySpawner; 
+    public GameObject enemySpawner;
 
     // --- 網路變數 ---
     public NetworkVariable<GameState> currentNetworkState = new NetworkVariable<GameState>(GameState.Intro);
     private NetworkVariable<int> netTutorialPageIndex = new NetworkVariable<int>(0);
-    
-    // 用來生怪的列表
+
     public System.Collections.Generic.List<NetworkObject> tutorialSpiritPrefabs;
 
     public enum GameState { Intro, Tutorial, Gameplay, GameOver }
@@ -47,79 +46,75 @@ public class GameFlowManager : NetworkBehaviour
     }
 
     // =========================================================
-    // 🔥 新增：按鍵輸入監聽 (取代射線點擊)
+    // 🔥 按鍵輸入監聽 (A鍵 與 B鍵)
     // =========================================================
     void Update()
     {
-        // 只有「本地玩家」需要處理輸入 (Server 還是 Client 都可以是玩家)
-        // 但因為輸入是用來發送 RPC 的，我們只需要確保不要重複執行
-        // 這裡我們簡單判定：任何人按按鈕都會嘗試觸發自己的邏輯
-
-        // 1. 偵測主要按鍵 (右手板機 Trigger) -> 用於 Next / OK / Restart
-        if (OVRInput.GetDown(OVRInput.Button.PrimaryIndexTrigger) || OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger) || Input.GetKeyDown(KeyCode.Space))
+        // 1. 偵測確認鍵：Button A (右手) 或 Button X (左手) 或 鍵盤空白鍵
+        // 功能：開始、下一頁、OK、Restart
+        if (OVRInput.GetDown(OVRInput.Button.One) || Input.GetKeyDown(KeyCode.Space))
         {
-            HandlePrimaryInput();
+            HandleConfirmInput(); // 處理 A 鍵邏輯
         }
 
-        // 2. 偵測次要按鍵 (右手 B 鍵 或 左手 Y 鍵) -> 用於 Skip / Quit
-        if (OVRInput.GetDown(OVRInput.Button.Two) || OVRInput.GetDown(OVRInput.Button.Four) || Input.GetKeyDown(KeyCode.Escape))
+        // 2. 偵測取消/跳過鍵：Button B (右手) 或 Button Y (左手) 或 鍵盤 Esc
+        // 功能：Skip、Quit
+        if (OVRInput.GetDown(OVRInput.Button.Two) || Input.GetKeyDown(KeyCode.Escape))
         {
-            HandleSecondaryInput();
+            HandleCancelInput(); // 處理 B 鍵邏輯
         }
     }
 
-    // 處理「確定 / 下一步」類型的動作
-    void HandlePrimaryInput()
+    // --- A 鍵邏輯 (正面選項) ---
+    void HandleConfirmInput()
     {
         switch (currentNetworkState.Value)
         {
             case GameState.Intro:
-                // Intro 狀態：按板機 -> 開始遊戲
+                // Intro: 按 A 開始遊戲
                 OnClick_StartGame();
                 break;
 
             case GameState.Tutorial:
-                // Tutorial 狀態：按板機 -> 下一頁
-                // 判斷是否在 Phase 1 (看投影片階段)
+                // Tutorial: 按 A 下一頁 / OK
                 if (tutorialPhase1_Instruction != null && tutorialPhase1_Instruction.activeSelf)
                 {
-                    // 檢查是否為最後一頁
                     if (tutorialPages != null && netTutorialPageIndex.Value >= tutorialPages.Length - 1)
                     {
-                        // 最後一頁了 -> 按板機變成 "OK" (進入練習)
+                        // 最後一頁 -> OK (進練習)
                         OnClick_TutorialOK();
                     }
                     else
                     {
-                        // 還沒到最後一頁 -> 下一頁
+                        // 還沒看完 -> 下一頁
                         OnClick_NextTutorialPage();
                     }
                 }
                 break;
-            
+
             case GameState.Gameplay:
-                // 遊戲中按板機通常是抓怪，不處理 UI
+                // 遊戲中按 A 通常是抓東西，這裡不處理 UI
                 break;
 
             case GameState.GameOver:
-                // 結算狀態：按板機 -> Restart
+                // 【您的需求】GameOver: 按 A 重玩 (Restart)
                 OnClick_Restart();
                 break;
         }
     }
 
-    // 處理「取消 / 跳過 / 退出」類型的動作
-    void HandleSecondaryInput()
+    // --- B 鍵邏輯 (負面選項) ---
+    void HandleCancelInput()
     {
         switch (currentNetworkState.Value)
         {
             case GameState.Tutorial:
-                // Tutorial 狀態：按 B 鍵 -> Skip (跳過教學直接玩)
+                // 【您的需求】Tutorial: 按 B 跳過 (Skip)
                 OnClick_SkipTutorial();
                 break;
 
             case GameState.GameOver:
-                // 結算狀態：按 B 鍵 -> Quit (退出遊戲)
+                // GameOver: 按 B 退出 (Quit)
                 OnClick_Quit();
                 break;
         }
@@ -163,7 +158,6 @@ public class GameFlowManager : NetworkBehaviour
 
             case GameState.Gameplay:
                 if (uiHudGroup) uiHudGroup.SetActive(true);
-                // 這裡原本有設定生怪器，現在讓它在流程中被呼叫
                 if (enemySpawner) enemySpawner.SetActive(true);
                 break;
 
@@ -185,7 +179,7 @@ public class GameFlowManager : NetworkBehaviour
         }
     }
 
-    // --- 按鈕功能 (保留原本的邏輯，供 Update 呼叫) ---
+    // --- 按鈕功能 (RPC 入口) ---
 
     public void OnClick_StartGame()
     {
@@ -215,10 +209,9 @@ public class GameFlowManager : NetworkBehaviour
     public void OnClick_Quit()
     {
         Application.Quit();
-        // 如果是在編輯器模式，也停止播放
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
-        #endif
+#endif
     }
 
     // --- RPC 網路溝通區 ---
@@ -236,7 +229,7 @@ public class GameFlowManager : NetworkBehaviour
         {
             Debug.Log("正式遊戲開始！啟動 10 秒倒數...");
             CancelInvoke("TriggerGameOverServer");
-            Invoke("TriggerGameOverServer", 10.0f); 
+            Invoke("TriggerGameOverServer", 10.0f);
         }
     }
 
@@ -252,22 +245,21 @@ public class GameFlowManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void SwitchToPracticeServerRpc()
     {
-        // 生成教學小精靈 (排列成矩陣)
         int spiritCount = tutorialSpiritPrefabs.Count;
-        if(statusController) statusController.tutorialTargetTotal = spiritCount;
+        if (statusController) statusController.tutorialTargetTotal = spiritCount;
 
-        int itemsPerRow = 3;   
-        float spacingX = 0.4f; 
-        float spacingY = 0.3f; 
-        float startHeight = 1.3f; 
-        float distanceZ = 1.0f;   
+        int itemsPerRow = 3;
+        float spacingX = 0.4f;
+        float spacingY = 0.3f;
+        float startHeight = 1.3f;
+        float distanceZ = 1.0f;
 
         for (int i = 0; i < spiritCount; i++)
         {
             var p = Instantiate(tutorialSpiritPrefabs[i]);
-            
-            int row = i / itemsPerRow; 
-            int col = i % itemsPerRow; 
+
+            int row = i / itemsPerRow;
+            int col = i % itemsPerRow;
 
             float xPos = (col - (itemsPerRow - 1) * 0.5f) * spacingX;
             float yPos = startHeight - (row * spacingY);
@@ -285,14 +277,13 @@ public class GameFlowManager : NetworkBehaviour
     private void SwitchToPracticeClientRpc()
     {
         if (tutorialPhase1_Instruction) tutorialPhase1_Instruction.SetActive(false);
-        // Phase 2 練習區不需要特別開 UI，因為精靈是 3D 物件
     }
 
-    public void TriggerGameOverServer() 
+    public void TriggerGameOverServer()
     {
         currentNetworkState.Value = GameState.GameOver;
     }
-    
+
     public void TriggerGameOver()
     {
         if (IsServer) TriggerGameOverServer();
