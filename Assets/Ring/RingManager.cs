@@ -197,6 +197,9 @@ public class RingManager : NetworkBehaviour
 
     private bool CheckClose(HalfRing r1, HalfRing r2)
     {
+        // float dot = Vector3.Dot(r1.transform.forward, r2.transform.forward);
+        // if (Mathf.Abs(dot) < 0.5) return false;
+
         float sqrThresh = distanceThreshold * distanceThreshold;
 
         // Cache positions to avoid Repeated Native calls
