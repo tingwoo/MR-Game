@@ -16,13 +16,13 @@ public class TutorialTarget : NetworkBehaviour
 
         // 2. 【嚴格判定邏輯】跟 SpiritDestroy 完全一致
         // 條件 A: 撞到的東西 Tag 是 "FullRing"
-        // 條件 B: 撞到的東西身上有 NetworkFullRing 腳本，且顏色跟精靈一樣
+        // 條件 B: 撞到的東西身上有 FullRing 腳本，且顏色跟精靈一樣
         if (other.CompareTag("FullRing"))
         {
-            var ringScript = other.GetComponent<NetworkFullRing>();
+            var ringScript = other.GetComponent<FullRing>();
 
             // 確保腳本存在，且顏色正確
-            if (ringScript != null && ringScript.Color == color)
+            if (ringScript != null && ringScript.color == color)
             {
                 HandleCapture();
             }
