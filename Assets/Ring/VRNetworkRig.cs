@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
@@ -15,11 +17,20 @@ public class VRNetworkRig : NetworkBehaviour
     private Transform _localLeftHandAnchor;
     private Transform _localRightHandAnchor;
 
+    public static List<VRNetworkRig> ActiveRigs = new List<VRNetworkRig>();
+
+    public override void OnNetworkDespawn() 
+    {
+        ActiveRigs.Remove(this);
+    }
+
     public override void OnNetworkSpawn()
     {
         // If we are not the owner of this object, we don't need to find hardware.
         // We just listen to the network stream.
-        if (!IsOwner) return;
+        // if (!IsOwner) return;
+
+        ActiveRigs.Add(this);
 
         // 1. Find the OVRCameraRig in the scene (The physical hardware)
         var cameraRig = FindFirstObjectByType<OVRCameraRig>();

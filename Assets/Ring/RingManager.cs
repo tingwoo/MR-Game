@@ -1,195 +1,81 @@
- using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
-using System.Linq;
 
 public class RingManager : NetworkBehaviour
 {
-    [Header("Prefabs")]
-    [SerializeField] private NetworkObject halfRingPrefab;
-    [SerializeField] private NetworkObject fullRingPrefab;
+    public GameObject halfRingPrefab;
+    public GameObject fullRingPrefab;
+    private HalfRing[] halfRingList = new HalfRing[4];
 
-    [Header("Settings")]
-    [SerializeField] private float distanceThreshold = 0.1f; // Default value added
+    [SerializeField] private Vector3 ringOffset;
+    [SerializeField] private float ringLongitude;
+    [SerializeField] private float ringLatitude;
 
-    // Caches to avoid GC allocation in Update
-    private List<GameObject> _handsToRemoveCache = new List<GameObject>();
-    private List<NetworkHalfRing> _pairsToRemoveCache = new List<NetworkHalfRing>();
-    private List<KeyValuePair<GameObject, NetworkHalfRing>> _ringEntriesCache = new List<KeyValuePair<GameObject, NetworkHalfRing>>();
+    [SerializeField] private float distanceThreshold = 0.1f;
 
-    // State tracking
-    private Dictionary<GameObject, NetworkHalfRing> handRingDict = new Dictionary<GameObject, NetworkHalfRing>();
-    
-    // Mapping: HalfRing -> (PartnerHalfRing, TheSpawnedFullRing)
-    private Dictionary<NetworkHalfRing, (NetworkHalfRing pairedRing, NetworkFullRing spawnedRing)> pairedRings = new Dictionary<NetworkHalfRing, (NetworkHalfRing, NetworkFullRing)>();
+    [SerializeField] private float colorSwitchDuration = 2.5f;
 
-    private void Update()
+    private Dictionary<HalfRing, (HalfRing pairedRing, FullRing spawnedRing)> pairedRings = new Dictionary<HalfRing, (HalfRing, FullRing)>();
+
+    private List<HalfRing> _pairsToRemoveCache = new List<HalfRing>();
+
+    // Snap rings to hands
+    // 0, 1: Client Rings
+    // 2, 3: Server Rings
+    void Start()
     {
-        if (!IsServer) return;
-
-        HandleSpawningAndMovement();
-        HandleNewPairs();
-        HandleExistingPairs();
-    }
-
-    /// <summary>
-    /// 1. Iterates clients, ensures rings exist for hands, and updates positions.
-    /// </summary>
-    private void HandleSpawningAndMovement()
-    {
-        // --- A. Spawn & Update Positions ---
-        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
+        for (int i = 0; i < 4; i++)
         {
-            if (client.PlayerObject == null) continue;
+            GameObject p = Instantiate(halfRingPrefab);
+            p.GetComponent<HalfRing>().hand = new HandData(i % 2 == 0 ? Handedness.Left : Handedness.Right, i < 2 ? false : true);
+            p.GetComponent<HalfRing>().color = (GameColor)i;
+            p.GetComponent<HalfRing>().UpdateModels();
 
-            // Ensure the player has the required rig component
-            if (!client.PlayerObject.TryGetComponent<VRNetworkRig>(out var playerRig)) continue;
-
-            // Process Left Hand
-            if (playerRig.rootLeftHand != null)
-            {
-                ProcessHand(playerRig.rootLeftHand.gameObject, true);
-            }
-
-            // Process Right Hand
-            if (playerRig.rootRightHand != null)
-            {
-                ProcessHand(playerRig.rootRightHand.gameObject, false);
-            }
-        }
-
-        // --- B. Cleanup Invalid Entries ---
-        _handsToRemoveCache.Clear();
-
-        foreach (var kvp in handRingDict)
-        {
-            var hand = kvp.Key;
-            var ring = kvp.Value;
-
-            // Check if Hand or Ring has been destroyed/disconnected
-            if (hand == null || ring == null || !ring.IsSpawned)
-            {
-                // Despawn if the ring still exists as a NetObject but the hand is gone
-                if (ring != null && ring.NetworkObject != null && ring.NetworkObject.IsSpawned)
-                {
-                    ring.NetworkObject.Despawn();
-                }
-                
-                _handsToRemoveCache.Add(hand); // Mark dictionary key for removal
-            }
-        }
-
-        // Apply cleanup
-        foreach (var hand in _handsToRemoveCache)
-        {
-            if (hand != null) handRingDict.Remove(hand);
-            // Note: If hand is null (destroyed), the dictionary key might be tricky. 
-            // Ideally, loop backward or use a separate list of keys, 
-            // but Unity overrides == null, so the object reference remains valid as a key even if destroyed.
-            // For safety, we remove strictly based on the loop we just ran.
-             handRingDict.Remove(hand);
+            p.transform.position = new Vector3(0.25f * i, 1f, 0f);
+            halfRingList[i] = p.GetComponent<HalfRing>();
         }
     }
 
-    /// <summary>
-    /// Helper to handle creation and movement of a single ring.
-    /// </summary>
-    private void ProcessHand(GameObject handGO, bool isLeft)
+    // Update is called once per frame
+    void Update()
     {
-        // 1. Spawn if missing
-        if (!handRingDict.TryGetValue(handGO, out var ring) || ring == null)
+        foreach (VRNetworkRig rig in VRNetworkRig.ActiveRigs)
         {
-            var netObj = Instantiate(halfRingPrefab);
-            netObj.Spawn();
-            
-            ring = netObj.GetComponent<NetworkHalfRing>();
-            
-            // Assign color based on count
-            ring.SetColor((GameColor)(handRingDict.Count % 4));
-            ring.SetHandedness(isLeft);
-            
-            handRingDict[handGO] = ring;
+            bool isMine = rig.OwnerClientId == NetworkManager.Singleton.LocalClientId;
+            int baseIndex = isMine ^ IsServer ? 0 : 2;
+
+            UpdateTransform(halfRingList[baseIndex], rig.rootLeftHand, true);
+            UpdateTransform(halfRingList[baseIndex + 1], rig.rootRightHand, false);
         }
 
-        // 2. Update Position/Rotation
-        // Note: If Ring has a NetworkTransform, ensure it's in ServerAuth mode.
-        ring.transform.position = handGO.transform.position;
-        
-        // Apply offset based on handedness
-        if (isLeft)
-            ring.transform.rotation = handGO.transform.rotation * Quaternion.Euler(-45f, 180f, 0f);
-        else
-            ring.transform.rotation = handGO.transform.rotation * Quaternion.Euler(45f, 0f, 0f);
-    }
+        if (OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
+        {
+            SwitchColor();
+        }
 
-    /// <summary>
-    /// 2. Checks for collisions between unpaired rings.
-    /// </summary>
-    private void HandleNewPairs()
-    {
-        // Update the cache list from the dictionary
-        _ringEntriesCache.Clear();
-        foreach(var kvp in handRingDict) _ringEntriesCache.Add(kvp);
-
-        int count = _ringEntriesCache.Count;
-
+        // Check connected pairs
         // O(N^2) loop - Acceptable for low player counts (e.g., < 10 players)
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < 4; i++)
         {
-            var ring1 = _ringEntriesCache[i].Value;
+            if (pairedRings.ContainsKey(halfRingList[i])) continue;
 
-            // Skip if invalid or already paired
-            if (!IsRingValid(ring1) || pairedRings.ContainsKey(ring1)) continue;
-
-            for (int j = i + 1; j < count; j++)
+            for (int j = i + 1; j < 4; j++)
             {
-                var ring2 = _ringEntriesCache[j].Value;
-
-                // Skip if invalid or already paired
-                if (!IsRingValid(ring2) || pairedRings.ContainsKey(ring2)) continue;
+                if (pairedRings.ContainsKey(halfRingList[j])) continue;
 
                 // Check distance
-                if (CheckClose(ring1, ring2))
+                if (CheckClose(halfRingList[i], halfRingList[j]))
                 {
-                    CreatePair(ring1, ring2);
+                    CreatePair(halfRingList[i], halfRingList[j]);
                 }
             }
         }
-    }
-
-    private void CreatePair(NetworkHalfRing ring1, NetworkHalfRing ring2)
-    {
-        var fullRingNO = Instantiate(fullRingPrefab);
-        fullRingNO.Spawn();
         
-        var fullRing = fullRingNO.GetComponent<NetworkFullRing>();
-        
-        // Combine colors (Assuming you have an extension method for this)
-        fullRing.SetColor(GameColorExtensions.Add(ring1.Color, ring2.Color));
-
-        // Store relationship (Store on both? Currently logic implies storing on ring1 is enough to track the unique pair)
-        // To prevent double booking, we usually store the relationship one way or check both.
-        // Current logic: key is ring1.
-        pairedRings[ring1] = (ring2, fullRing);
-        // Also add ring2 as a key so it doesn't get picked up by the main loop again
-        pairedRings[ring2] = (ring1, fullRing); 
-
-        ring1.SetShow(false);
-        ring2.SetShow(false);
-    }
-
-    /// <summary>
-    /// 3. Updates existing pairs and breaks them if distance is exceeded or objects destroyed.
-    /// </summary>
-    private void HandleExistingPairs()
-    {
         _pairsToRemoveCache.Clear();
 
-        // We only need to iterate unique pairs. 
-        // Since we added BOTH rings to the dictionary in CreatePair, we need to avoid processing the same pair twice.
-        // We can use a HashSet to track processed fullRings, or simply iterate and check logic.
-        
-        var processedFullRings = new HashSet<NetworkFullRing>();
+        var processedFullRings = new HashSet<FullRing>();
 
         foreach (var kvp in pairedRings)
         {
@@ -197,14 +83,23 @@ public class RingManager : NetworkBehaviour
             var partnerRing = kvp.Value.pairedRing;
             var fullRing = kvp.Value.spawnedRing;
 
+            // Validate rings first
+            if (primaryRing == null || partnerRing == null)
+            {
+                // Mark both (if non-null) for removal
+                if (primaryRing != null) _pairsToRemoveCache.Add(primaryRing);
+                if (partnerRing != null) _pairsToRemoveCache.Add(partnerRing);
+                continue;
+            }
+
             // If we already processed this full ring (via the partner), skip
-            if (processedFullRings.Contains(fullRing)) continue;
-            processedFullRings.Add(fullRing);
+            if (fullRing != null && processedFullRings.Contains(fullRing)) continue;
+            if (fullRing != null) processedFullRings.Add(fullRing);
 
             bool shouldUnpair = false;
 
             // Validation
-            if (!IsRingValid(primaryRing) || !IsRingValid(partnerRing) || fullRing == null)
+            if (fullRing == null)
             {
                 shouldUnpair = true;
             }
@@ -215,11 +110,14 @@ public class RingManager : NetworkBehaviour
 
             if (shouldUnpair)
             {
-                if (fullRing != null && fullRing.NetworkObject.IsSpawned)
-                    fullRing.NetworkObject.Despawn();
+                if (fullRing != null)
+                    Destroy(fullRing.gameObject);
 
-                if (IsRingValid(primaryRing)) primaryRing.SetShow(true);
-                if (IsRingValid(partnerRing)) partnerRing.SetShow(true);
+                primaryRing.show = true;
+                partnerRing.show = true;
+
+                primaryRing.UpdateModels();
+                partnerRing.UpdateModels();
 
                 // Mark both for removal from dictionary
                 _pairsToRemoveCache.Add(primaryRing);
@@ -237,7 +135,7 @@ public class RingManager : NetworkBehaviour
         }
     }
 
-    private void UpdateFullRingTransform(NetworkHalfRing r1, NetworkHalfRing r2, NetworkFullRing full)
+    private void UpdateFullRingTransform(HalfRing r1, HalfRing r2, FullRing full)
     {
         // Average position
         full.transform.position = (r1.transform.position + r2.transform.position) * 0.5f;
@@ -259,12 +157,45 @@ public class RingManager : NetworkBehaviour
         }
     }
 
-    private bool IsRingValid(NetworkHalfRing r)
+    void UpdateTransform(HalfRing ring, Transform handTF, bool isLeft)
     {
-        return r != null && r.NetworkObject != null && r.NetworkObject.IsSpawned && r.collidePoint1 != null && r.collidePoint2 != null;
+        // 2. Update Position/Rotation
+        // Note: If Ring has a NetworkTransform, ensure it's in ServerAuth mode.
+        Vector3 handedOffset;
+        float handedLongitude, handedLatitude;
+
+        if (isLeft)
+        {
+            handedOffset = new Vector3(-ringOffset.x, ringOffset.y, ringOffset.z);
+            handedLongitude = 180f - ringLongitude;
+            handedLatitude = -ringLatitude;
+        } else
+        {
+            handedOffset = ringOffset;
+            handedLongitude = ringLongitude;
+            handedLatitude = ringLatitude;
+        }
+
+        // 1. Calculate the Rotation
+        // Combine the hand's rotation with the ring's custom rotation
+        ring.transform.rotation = handTF.rotation;
+
+        // Longitude: Rotate around green axis (y)
+        ring.transform.Rotate(Vector3.up, handedLongitude, Space.Self);
+
+        // Latitude: Rotate around red axis (x)
+        ring.transform.Rotate(Vector3.right, handedLatitude, Space.Self);
+
+        // 2. Calculate the Position
+        // Rotate the offset vector to match the hand's orientation
+        // In Unity, "Quaternion * Vector3" applies the rotation to the vector
+        Vector3 rotatedOffset = handTF.rotation * handedOffset;
+
+        // Add the rotated offset to the hand's origin
+        ring.transform.position = handTF.position + rotatedOffset;
     }
 
-    private bool CheckClose(NetworkHalfRing r1, NetworkHalfRing r2)
+    private bool CheckClose(HalfRing r1, HalfRing r2)
     {
         float sqrThresh = distanceThreshold * distanceThreshold;
 
@@ -282,5 +213,97 @@ public class RingManager : NetworkBehaviour
         float d21 = (p1_2 - p2_1).sqrMagnitude;
 
         return (d11 < sqrThresh && d22 < sqrThresh) || (d12 < sqrThresh && d21 < sqrThresh);
+    }
+
+    private void CreatePair(HalfRing ring1, HalfRing ring2)
+    {
+        GameObject fullRingGO = Instantiate(fullRingPrefab);
+        
+        FullRing fullRing = fullRingGO.GetComponent<FullRing>();
+        
+        // Combine colors (Assuming you have an extension method for this)
+        fullRing.hand1 = ring1.hand;
+        fullRing.hand2 = ring2.hand;
+        fullRing.color = GameColorExtensions.Add(ring1.color, ring2.color);
+        fullRing.UpdateModels();
+
+        // Store relationship (Store on both? Currently logic implies storing on ring1 is enough to track the unique pair)
+        // To prevent double booking, we usually store the relationship one way or check both.
+        // Current logic: key is ring1.
+        pairedRings[ring1] = (ring2, fullRing);
+        // Also add ring2 as a key so it doesn't get picked up by the main loop again
+        pairedRings[ring2] = (ring1, fullRing); 
+
+        ring1.show = false;
+        ring2.show = false;
+
+        ring1.UpdateModels();
+        ring2.UpdateModels();
+    }
+
+    public void SwitchColor()
+    {
+        if (!IsServer) return;
+
+        int idx1 = Random.Range(0, halfRingList.Length);
+        int idx2 = (idx1 + Random.Range(1, halfRingList.Length)) % halfRingList.Length;
+
+        SwitchCoroutineClientRpc(idx1, idx2);
+    }
+
+    [ClientRpc]
+    private void SwitchCoroutineClientRpc(int idx1, int idx2)
+    {
+        StartCoroutine(SwitchCoroutine(idx1, idx2));
+    }
+
+    private IEnumerator SwitchCoroutine(int idx1, int idx2)
+    {
+        // Validate indices
+        if (idx1 < 0 || idx1 >= halfRingList.Length || idx2 < 0 || idx2 >= halfRingList.Length)
+            yield break;
+
+        var haptics = FindObjectOfType<HapticsManager>();
+        if (haptics != null)
+        {
+            if (halfRingList[idx1] != null) haptics.PlayHapticsOnHand(halfRingList[idx1].hand, HapticType.Three);
+            if (halfRingList[idx2] != null) haptics.PlayHapticsOnHand(halfRingList[idx2].hand, HapticType.Three);
+        }
+
+        // Wait for three seconds
+        yield return new WaitForSeconds(colorSwitchDuration);
+
+        // Re-check before swapping
+        if (halfRingList[idx1] == null || halfRingList[idx2] == null)
+            yield break;
+
+        HalfRing a = halfRingList[idx1];
+        HalfRing b = halfRingList[idx2];
+
+        // Swap array entries
+        halfRingList[idx1] = b;
+        halfRingList[idx2] = a;
+
+        // If either is null, nothing more to do
+        if (a == null || b == null)
+            yield break;
+
+        // Swap world transforms (position, rotation)
+        a.transform.GetPositionAndRotation(out Vector3 posA, out Quaternion rotA);
+        b.transform.GetPositionAndRotation(out Vector3 posB, out Quaternion rotB);
+        
+        a.transform.SetPositionAndRotation(posB, rotB);
+        b.transform.SetPositionAndRotation(posA, rotA);
+
+        // Swap hands
+        HandData h1 = a.hand;
+        HandData h2 = b.hand;
+
+        a.hand = h2;
+        b.hand = h1;
+
+        // Ensure visual state is refreshed
+        // halfRingList[idx1]?.UpdateModels();
+        // halfRingList[idx2]?.UpdateModels();
     }
 }

@@ -9,56 +9,87 @@ public class SpiritDestroy : NetworkBehaviour
 
     [Header("VFX References")]
     [SerializeField] private GameObject explosionPrefab;
+    [SerializeField] private float scoreAmount = 20f; 
+
+    // ==========================================
+    // 【新增】音效設定欄位
+    // ==========================================
+    [Header("Audio Settings")]
+    [Tooltip("請將音效檔 (AudioClip) 拉入這裡")]
+    [SerializeField] private AudioClip destroySound; 
+
+    [Range(0f, 1f)] 
+    [SerializeField] private float soundVolume = 1.0f; // 音量大小調整
+    // ==========================================
 
     private void OnTriggerEnter(Collider other)
     {
-        // 1. Server Logic Only
+        // 1. Server Logic Only: Collision logic is authoritative on the server
         if (!IsServer) return;
 
-        if (other.CompareTag("FullRing") && other.gameObject.GetComponent<NetworkFullRing>().Color == color)
+        if (other.CompareTag("FullRing") && other.gameObject.GetComponent<FullRing>().color == color)
         {
-            // 2. Tell all clients to play the VFX BEFORE destroying the object
-            // We convert the Enum 'color' to a real Unity Color struct here
             Color visualColor = ConvertGameColorToUnityColor(color);
+            
+            // 2. Visuals: Tell all clients to spawn explosion VFX AND Play Sound
             SpawnExplosionClientRpc(transform.position, visualColor);
 
-            // 3. Handle Destruction
-            if (NetworkObject != null && NetworkObject.IsSpawned)
+            // 3. Haptics: Tell the full ring to play haptics on its two component hands
+            other.gameObject.GetComponent<FullRing>().PlayHaptics();
+
+            // 4. Logic: Add score directly on the Server
+            if (StaminaBarController.Instance != null)
+            {
+                StaminaBarController.Instance.AddStaminaServer(scoreAmount);
+            }
+            else
+            {
+                Debug.LogWarning("StaminaBarController Instance not found!");
+            }
+
+            // 4. Cleanup: Despawn the network object
+            if (NetworkObject != null && NetworkObject.IsSpawned) 
                 NetworkObject.Despawn();
             else
                 Destroy(gameObject);
         }
     }
 
-    // The [ClientRpc] attribute makes this function run on all connected clients
     [ClientRpc]
     private void SpawnExplosionClientRpc(Vector3 position, Color impactColor)
     {
-        // A. Instantiate locally (no network identity needed on the explosion prefab)
-        GameObject boom = Instantiate(explosionPrefab, position, Quaternion.identity);
-
-        // B. Apply the color using the script we made in the previous step
-        ExplosionController controller = boom.GetComponent<ExplosionController>();
-        if (controller != null)
+        // Instantiate the visual effect locally on each client
+        if (explosionPrefab != null)
         {
-            controller.Initialize(impactColor);
+            GameObject boom = Instantiate(explosionPrefab, position, Quaternion.identity);
+            ExplosionController controller = boom.GetComponent<ExplosionController>();
+            if (controller != null)
+            {
+                controller.Initialize(impactColor);
+            }
+        }
+
+        // ==========================================
+        // 【新增】在客戶端播放音效
+        // ==========================================
+        if (destroySound != null)
+        {
+            // PlayClipAtPoint 會在指定位置建立一個暫時的 AudioSource，
+            // 播完後自動銷毀，這樣就算精靈本體被 Destroy 了，聲音也會播完。
+            AudioSource.PlayClipAtPoint(destroySound, position, soundVolume);
         }
     }
 
-    // Helper to map your GameColor enum to actual visible colors
     private Color ConvertGameColorToUnityColor(GameColor gameColor)
     {
-        // Assuming GameColor is an enum. Adjust these cases to match your enum names!
         switch (gameColor)
         {
-            // Example Cases:
             case GameColor.Red: return Color.red;
             case GameColor.Yellow: return Color.yellow;
             case GameColor.Blue: return Color.blue;
             case GameColor.Orange: return new Color(1.0f, 0.5f, 0.0f);
             case GameColor.Green: return Color.green;
             case GameColor.Purple: return Color.magenta;
-            // Fallback
             default: return Color.white;
         }
     }

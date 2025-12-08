@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/bubble.unity
     guid: 560ddcca9b6b952498f358c65fd6489f
+  - enabled: 1
+    path: Assets/Scenes/GameOverScene.unity
+    guid: 822912b5638852148af70a9b8cd18402
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: f8d8b474dd7e06042832be97e21ee169, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 4c2917cd35cba9f48afef3da0cb6d364, type: 2}
