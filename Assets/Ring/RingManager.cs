@@ -22,11 +22,7 @@ public class RingManager : NetworkBehaviour
     private List<HalfRing> _pairsToRemoveCache = new List<HalfRing>();
 
     private GameFlowManager flowManager;
-
-    public int PlayerCount()
-    {
-        return VRNetworkRig.ActiveRigs.Count;
-    }
+    private PlayerCheck playerCheck;
 
     // Snap rings to hands
     // 0, 1: Server Rings
@@ -46,6 +42,7 @@ public class RingManager : NetworkBehaviour
         }
 
         flowManager = FindAnyObjectByType<GameFlowManager>();
+        playerCheck = FindAnyObjectByType<PlayerCheck>();
     }
 
     // Update is called once per frame
@@ -172,13 +169,13 @@ public class RingManager : NetworkBehaviour
         // 2. Update Position/Rotation
         // Note: If Ring has a NetworkTransform, ensure it's in ServerAuth mode.
         Vector3 offset;
-        if (!flowManager || flowManager.currentNetworkState.Value != GameFlowManager.GameState.Gameplay)
-        {
-            offset = new Vector3(0f, -0.075f, 0f);
-        } else
+        if (flowManager.currentNetworkState.Value == GameFlowManager.GameState.Gameplay)
         {
             offset = ringOffset;
+        } else {
+            offset = new Vector3(0f, -0.075f, 0f);
         }
+
         Vector3 handedOffset;
         float handedLongitude, handedLatitude;
 
@@ -268,6 +265,9 @@ public class RingManager : NetworkBehaviour
 
         int idx1 = Random.Range(0, halfRingList.Length);
         int idx2 = (idx1 + Random.Range(1, halfRingList.Length)) % halfRingList.Length;
+
+        playerCheck.SetRingColors(idx2, halfRingList[idx1].color);
+        playerCheck.SetRingColors(idx1, halfRingList[idx2].color);
 
         SwitchCoroutineClientRpc(idx1, idx2);
     }

@@ -8498,7 +8498,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: c3cc076c5a70b4a20b9b71bff2ea604b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6fe763c0ed048f5449ce374476b30148, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -14261,7 +14261,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 157, y: -47}
+  m_AnchoredPosition: {x: 159.6, y: -50.2}
   m_SizeDelta: {x: 400, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1200331942
@@ -14946,6 +14946,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 713bf6ce93ead9e44ab83f8e9c7ca84a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ringImagesSource:
+  - {fileID: 21300000, guid: f5f86dab66dacff4d91fc7efd04896fb, type: 3}
+  - {fileID: 21300000, guid: 7dd75707357dbca48a70e465f0b4d15c, type: 3}
+  - {fileID: 21300000, guid: 42cb47d20c826564e81b736b0093210c, type: 3}
+  - {fileID: 21300000, guid: 6ce95e543d4a546458325c87e107e72d, type: 3}
+  ringImages:
+  - {fileID: 138702974}
+  - {fileID: 112541444}
+  - {fileID: 325959972}
+  - {fileID: 1291618424}
   check1: {fileID: 20012357}
   check2: {fileID: 1358680220}
   loadingIndicator: {fileID: 1771527094}
@@ -17847,7 +17857,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a2e543cf7a607480089f82637aaa8078, type: 3}
+  m_Sprite: {fileID: 21300000, guid: ffcce80155f86a2469e05ec1359fb514, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -22883,7 +22893,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: cc312d0dc9e13421cb81e898240fbdb1, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c3d3fa4b7e7e3d0498bbb5d9bb3d5aea, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -23096,6 +23106,37 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &2067686368
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2067686369}
+  m_Layer: 0
+  m_Name: spirit catch tutorial-5
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &2067686369
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2067686368}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2098147098
 GameObject:
   m_ObjectHideFlags: 0
@@ -23260,7 +23301,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 73152d8f15e75479fb495394e0514bd6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 4c60bdca39feba34cb28cbc70d2514f6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -23311,3 +23352,4 @@ SceneRoots:
   - {fileID: 1435158834}
   - {fileID: 1226919556}
   - {fileID: 1948949285}
+  - {fileID: 2067686369}
