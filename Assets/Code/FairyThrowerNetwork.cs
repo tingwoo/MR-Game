@@ -10,9 +10,9 @@ public class FairyThrowerNetwork : NetworkBehaviour
     [Header("Spawn Origin")]
     public SpawnOriginMode spawnOriginMode = SpawnOriginMode.VolumeBox;
     public Transform origin;
-    
+
     // 預留給未來擴充玩家追蹤用
-    public Transform playerA; 
+    public Transform playerA;
     public Transform playerB;
 
     [Tooltip("請將 CenterEyeAnchor 底下的 Volume 拉到這裡 (務必勾選 Is Trigger)")]
@@ -21,7 +21,7 @@ public class FairyThrowerNetwork : NetworkBehaviour
     [Header("Direction")]
     public DirectionMode directionMode = DirectionMode.RandomConeAroundRef;
     [Tooltip("請拉入 ThrowDirectionRef，藍色軸向(Z)即為發射中心方向")]
-    public Transform forwardRef; 
+    public Transform forwardRef;
 
     [Range(0f, 45f)]
     public float angleDeg = 12f;
@@ -32,7 +32,7 @@ public class FairyThrowerNetwork : NetworkBehaviour
 
     [Header("Size (Scale)")]
     [Tooltip("隨機大小範圍：X為最小值，Y為最大值 (例如 0.5 ~ 1.5)")]
-    public Vector2 scaleRange = new Vector2(1f, 1f); 
+    public Vector2 scaleRange = new Vector2(1f, 1f);
 
     [Header("Weighted Prefabs")]
     public WeightedPrefab[] weightedPrefabs = new WeightedPrefab[6];
@@ -61,8 +61,8 @@ public class FairyThrowerNetwork : NetworkBehaviour
             while (_accum >= 1f) { _accum -= 1f; ThrowOne(); }
         }
     }
-    
-   public void ThrowOne()
+
+    public void ThrowOne()
     {
         var pf = PickPrefabByWeight();
         if (pf == null) return;
@@ -86,7 +86,7 @@ public class FairyThrowerNetwork : NetworkBehaviour
         if (netObj != null)
         {
             netObj.Spawn();
-            
+
             // --- 【新增的物件追蹤程式碼】 ---
             if (GameCleanupManager.Instance != null)
             {
@@ -97,11 +97,11 @@ public class FairyThrowerNetwork : NetworkBehaviour
 
         // 3. 設定物理屬性
         var rb = go.GetComponent<Rigidbody>();
-        if(rb == null) rb = go.AddComponent<Rigidbody>();
-        
+        if (rb == null) rb = go.AddComponent<Rigidbody>();
+
         // Server 強制設定物理參數 (確保 Prefab 設定錯誤時也能修正)
         rb.useGravity = false;
-        rb.drag = 0f; 
+        rb.drag = 0f;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.isKinematic = false; // 確保不是 Kinematic
 
@@ -122,11 +122,11 @@ public class FairyThrowerNetwork : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
-        // 如果我是 Server (Host)，我一進遊戲就先丟一隻，不用等計時器
-        if (IsServer) 
-        {
-            ThrowOne();
-        }
+        // // 如果我是 Server (Host)，我一進遊戲就先丟一隻，不用等計時器
+        // if (IsServer) 
+        // {
+        //     ThrowOne();
+        // }
     }
     Vector3 GetSpawnPosition()
     {
@@ -151,8 +151,8 @@ public class FairyThrowerNetwork : NetworkBehaviour
         Vector3 fwdRef = (forwardRef != null ? forwardRef.forward : transform.forward);
 
         if (directionMode == DirectionMode.RandomConeAroundRef)
-             return RandomDirectionInCone(fwdRef, angleDeg);
-        
+            return RandomDirectionInCone(fwdRef, angleDeg);
+
         return fwdRef.normalized;
     }
 
@@ -160,10 +160,10 @@ public class FairyThrowerNetwork : NetworkBehaviour
     {
         float sum = 0f;
         foreach (var e in weightedPrefabs) if (e?.prefab != null) sum += e.weight;
-        
+
         float r = UnityEngine.Random.Range(0, sum);
         float acc = 0f;
-        
+
         foreach (var e in weightedPrefabs)
         {
             if (e?.prefab == null) continue;
@@ -172,7 +172,7 @@ public class FairyThrowerNetwork : NetworkBehaviour
         }
         return weightedPrefabs.Length > 0 ? weightedPrefabs[0].prefab : null;
     }
-    
+
     // =================================================================
     // 【關鍵修正 3】正確的圓錐散射數學計算
     // =================================================================
@@ -182,14 +182,14 @@ public class FairyThrowerNetwork : NetworkBehaviour
 
         // 1. 在圓錐角度內隨機取一個偏角
         float deviation = UnityEngine.Random.Range(0f, angleDeg);
-        
+
         // 2. 在 0-360 度隨機取一個旋轉角 (像輪盤一樣)
         float roll = UnityEngine.Random.Range(0f, 360f);
 
         // 3. 數學計算：
         // 先建立一個「面向正前方」的旋轉
         Quaternion lookRot = Quaternion.LookRotation(forward.normalized);
-        
+
         // 產生偏移：
         // Quaternion.AngleAxis(roll, Vector3.forward) -> 繞著軸心轉 (滾轉)
         // Quaternion.AngleAxis(deviation, Vector3.up) -> 往旁邊偏 (俯仰/偏航)
@@ -205,7 +205,7 @@ public class FairyThrowerNetwork : NetworkBehaviour
         public GameObject prefab;
         [Min(0f)] public float weight = 1f;
     }
-    
+
     void OnDrawGizmosSelected()
     {
         if (!drawGizmos) return;
@@ -223,9 +223,9 @@ public class FairyThrowerNetwork : NetworkBehaviour
         Gizmos.color = Color.red;
         Vector3 startPos = (spawnVolume != null) ? spawnVolume.bounds.center : transform.position;
         Vector3 dir = (forwardRef != null) ? forwardRef.forward : transform.forward;
-        
+
         Gizmos.DrawRay(startPos, dir * 2.0f); // 畫一條 2 公尺長的線
-        
+
         // 畫個小球在箭頭末端方便看
         Gizmos.DrawSphere(startPos + dir * 2.0f, 0.05f);
     }

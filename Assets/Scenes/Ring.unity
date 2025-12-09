@@ -13989,7 +13989,7 @@ MonoBehaviour:
   - {fileID: 2046093873}
   statusController: {fileID: 1353419055}
   enemySpawnerScript: {fileID: 1131281547}
-  difficultyController: {fileID: 0}
+  difficultyController: {fileID: 1131281551}
   currentNetworkState:
     m_InternalValue: 0
   tutorialSpiritPrefabs:
@@ -14015,7 +14015,7 @@ MonoBehaviour:
   tutorialTargetTotal: 6
   tutorialCountText: {fileID: 0}
   maxStamina: 100
-  staminaDrainRate: 3
+  staminaDrainRate: 4
   staminaRecovery: 15
   scorePerSpirit: 100
   staminaFillImage: {fileID: 0}
