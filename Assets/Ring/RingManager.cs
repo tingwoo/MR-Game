@@ -21,6 +21,8 @@ public class RingManager : NetworkBehaviour
 
     private List<HalfRing> _pairsToRemoveCache = new List<HalfRing>();
 
+    private GameFlowManager flowManager;
+
     public int PlayerCount()
     {
         return VRNetworkRig.ActiveRigs.Count;
@@ -38,9 +40,12 @@ public class RingManager : NetworkBehaviour
             p.GetComponent<HalfRing>().color = (GameColor)i;
             p.GetComponent<HalfRing>().UpdateModels();
 
-            p.transform.position = new Vector3(0.25f * i, 1f, 0f);
+            p.transform.position = new Vector3(0.25f * (i - 1.5f), 0.75f, 2f);
+            p.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
             halfRingList[i] = p.GetComponent<HalfRing>();
         }
+
+        flowManager = FindAnyObjectByType<GameFlowManager>();
     }
 
     // Update is called once per frame
@@ -166,17 +171,25 @@ public class RingManager : NetworkBehaviour
     {
         // 2. Update Position/Rotation
         // Note: If Ring has a NetworkTransform, ensure it's in ServerAuth mode.
+        Vector3 offset;
+        if (!flowManager || flowManager.currentNetworkState.Value != GameFlowManager.GameState.Gameplay)
+        {
+            offset = new Vector3(0f, -0.075f, 0f);
+        } else
+        {
+            offset = ringOffset;
+        }
         Vector3 handedOffset;
         float handedLongitude, handedLatitude;
 
         if (isLeft)
         {
-            handedOffset = new Vector3(-ringOffset.x, ringOffset.y, ringOffset.z);
+            handedOffset = new Vector3(-offset.x, offset.y, offset.z);
             handedLongitude = 180f - ringLongitude;
             handedLatitude = -ringLatitude;
         } else
         {
-            handedOffset = ringOffset;
+            handedOffset = offset;
             handedLongitude = ringLongitude;
             handedLatitude = ringLatitude;
         }

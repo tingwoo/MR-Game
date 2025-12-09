@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class PlayerCheck : NetworkBehaviour
 {
-    public GameObject check1, check2;
+    public GameObject check1, check2, loadingIndicator, playButton;
 
     // 1. Create a NetworkVariable to hold the state.
     // "value" defaults to 0. "NetworkVariableReadPermission.Everyone" ensures clients can read it.
@@ -29,7 +29,7 @@ public class PlayerCheck : NetworkBehaviour
         // 4. Cache the manager (Server side mainly)
         if (IsServer)
         {
-            ringManager = FindObjectOfType<RingManager>();
+            ringManager = FindAnyObjectByType<RingManager>();
         }
     }
 
@@ -68,16 +68,22 @@ public class PlayerCheck : NetworkBehaviour
         {
             check1.SetActive(false);
             check2.SetActive(false);
+            loadingIndicator.SetActive(true);
+            playButton.SetActive(false);
         }
         else if (n == 1)
         {
             check1.SetActive(true);
             check2.SetActive(false);
+            loadingIndicator.SetActive(true);
+            playButton.SetActive(false);
         }
         else
         {
             check1.SetActive(true);
             check2.SetActive(true);
+            loadingIndicator.SetActive(false);
+            playButton.SetActive(true);
         }
     }
 }

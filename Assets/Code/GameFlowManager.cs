@@ -183,7 +183,7 @@ public class GameFlowManager : NetworkBehaviour
         float spacingX = 0.5f;
         float spacingY = 0.5f;
         float startHeight = 1.3f;
-        float distanceZ = 1.0f;
+        float distanceZ = 1.5f;
 
         for (int i = 0; i < spiritCount; i++)
         {
