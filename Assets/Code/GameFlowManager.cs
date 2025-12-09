@@ -115,11 +115,15 @@ public class GameFlowManager : NetworkBehaviour
 
             case GameState.Gameplay:
                 if (uiHudGroup) uiHudGroup.SetActive(true);
-
-                // 🔥【開啟血條/進度條 Canvas】
                 if (uiTunnelCanvas) uiTunnelCanvas.SetActive(true);
-
-                if (enemySpawnerScript) enemySpawnerScript.autoSpawn = true;
+                if (enemySpawnerScript)
+                {
+                    enemySpawnerScript.autoSpawn = true;
+                    if (IsServer)
+                    {
+                        enemySpawnerScript.ThrowOne();
+                    }
+                }
                 if (difficultyController) difficultyController.ResetDifficulty();
                 break;
 

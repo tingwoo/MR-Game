@@ -1,7 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode;
 
 public class SpiritDestroy : NetworkBehaviour
 {
@@ -10,22 +8,20 @@ public class SpiritDestroy : NetworkBehaviour
 
     [Header("VFX References")]
     [SerializeField] protected GameObject explosionPrefab;
-    [SerializeField] protected float scoreAmount = 20f; 
+
+    // 這個變數其實用不到了，因為分數改由 GameStatusController 決定
+    // 但為了不破壞 Inspector 設定，您可以留著，或者加個 [Obsolete]
+    [SerializeField] protected float scoreAmount = 20f;
 
     [Header("Audio Settings")]
-    [SerializeField] protected AudioClip destroySound; 
-
-    [Range(0f, 1f)] 
+    [SerializeField] protected AudioClip destroySound;
+    [Range(0f, 1f)]
     [SerializeField] protected float soundVolume = 1.0f;
 
-    // Change to protected virtual so children can completely override if needed, 
-    // though usually they will just override OnContactLogic.
     protected virtual void OnTriggerEnter(Collider other)
     {
-        // 1. Server Logic Only
         if (!IsServer) return;
 
-        // Shared Collision Validation
         if (other.CompareTag("FullRing") && other.gameObject.GetComponent<FullRing>().color == color)
         {
             HandleCapture(other.gameObject);
@@ -35,38 +31,42 @@ public class SpiritDestroy : NetworkBehaviour
     protected void HandleCapture(GameObject ringObject)
     {
         Color visualColor = ConvertGameColorToUnityColor(color);
-        
-        // 2. Visuals: VFX AND Sound (via RPC)
+
+        // Visuals
         SpawnExplosionClientRpc(transform.position, visualColor);
 
-        // 3. Haptics: Trigger haptics on the ring handles
+        // Haptics
         var ringScript = ringObject.GetComponent<FullRing>();
         if (ringScript != null)
         {
             ringScript.PlayHaptics();
         }
 
-        // 4. Logic: Execute specific gameplay consequences (Score vs Tutorial)
+        // Logic (Score)
         OnContactLogic();
 
-        // 5. Cleanup: Despawn
-        if (NetworkObject != null && NetworkObject.IsSpawned) 
+        // Cleanup
+        if (NetworkObject != null && NetworkObject.IsSpawned)
             NetworkObject.Despawn();
         else
             Destroy(gameObject);
     }
 
-    // Virtual method to be overridden by TutorialTarget
+    // 🔥【關鍵修正】這裡要改呼叫 GameStatusController
     protected virtual void OnContactLogic()
     {
-        // Default behavior: Add Score / Stamina
-        if (StaminaBarController.Instance != null)
+        // 嘗試尋找新的管理器
+        var status = FindObjectOfType<GameStatusController>();
+
+        if (status != null)
         {
-            StaminaBarController.Instance.AddStaminaServer(scoreAmount);
+            // ✅ 正確：呼叫新的加分函式
+            // 這會使用 GameStatusController 裡設定的 1 或 100 分
+            status.OnEnemyCaptured();
         }
         else
         {
-            Debug.LogWarning("StaminaBarController Instance not found!");
+            Debug.LogWarning("找不到 GameStatusController，無法加分！");
         }
     }
 
@@ -77,10 +77,7 @@ public class SpiritDestroy : NetworkBehaviour
         {
             GameObject boom = Instantiate(explosionPrefab, position, Quaternion.identity);
             ExplosionController controller = boom.GetComponent<ExplosionController>();
-            if (controller != null)
-            {
-                controller.Initialize(impactColor);
-            }
+            if (controller != null) controller.Initialize(impactColor);
         }
 
         if (destroySound != null)
@@ -89,7 +86,6 @@ public class SpiritDestroy : NetworkBehaviour
         }
     }
 
-    // Helper to convert colors
     protected Color ConvertGameColorToUnityColor(GameColor gameColor)
     {
         switch (gameColor)
