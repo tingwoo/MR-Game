@@ -14015,9 +14015,9 @@ MonoBehaviour:
   tutorialTargetTotal: 6
   tutorialCountText: {fileID: 0}
   maxStamina: 100
-  staminaDrainRate: 4
+  staminaDrainRate: 3
   staminaRecovery: 15
-  scorePerSpirit: 100
+  scorePerSpirit: 1
   staminaFillImage: {fileID: 0}
   scoreText: {fileID: 0}
   finalScoreText: {fileID: 1200331942}
