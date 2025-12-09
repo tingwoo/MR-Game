@@ -1,52 +1,72 @@
-using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
+using UnityEngine;
 
 public class SpiritDestroy : NetworkBehaviour
 {
+    [Header("Base Settings")]
     public GameColor color;
 
     [Header("VFX References")]
-    [SerializeField] private GameObject explosionPrefab;
-
-    // 分數設定現在由 GameStatusController 統一管理，這裡只是為了相容舊設定
-    // [SerializeField] private float scoreAmount = 20f; 
+    [SerializeField] protected GameObject explosionPrefab;
+    [SerializeField] protected float scoreAmount = 20f; 
 
     [Header("Audio Settings")]
-    [SerializeField] private AudioClip destroySound;
-    [Range(0f, 1f)][SerializeField] private float soundVolume = 1.0f;
+    [SerializeField] protected AudioClip destroySound; 
 
-    private void OnTriggerEnter(Collider other)
+    [Range(0f, 1f)] 
+    [SerializeField] protected float soundVolume = 1.0f;
+
+    // Change to protected virtual so children can completely override if needed, 
+    // though usually they will just override OnContactLogic.
+    protected virtual void OnTriggerEnter(Collider other)
     {
-        // 1. 只有 Server 處理碰撞邏輯
+        // 1. Server Logic Only
         if (!IsServer) return;
 
-        // 檢查是否撞到 FullRing 且顏色正確
+        // Shared Collision Validation
         if (other.CompareTag("FullRing") && other.gameObject.GetComponent<FullRing>().color == color)
         {
-            Color visualColor = ConvertGameColorToUnityColor(color);
+            HandleCapture(other.gameObject);
+        }
+    }
 
-            // 2. 視覺與音效同步
-            SpawnExplosionClientRpc(transform.position, visualColor);
+    protected void HandleCapture(GameObject ringObject)
+    {
+        Color visualColor = ConvertGameColorToUnityColor(color);
+        
+        // 2. Visuals: VFX AND Sound (via RPC)
+        SpawnExplosionClientRpc(transform.position, visualColor);
 
-            // 3. 手把震動
-            other.gameObject.GetComponent<FullRing>().PlayHaptics();
+        // 3. Haptics: Trigger haptics on the ring handles
+        var ringScript = ringObject.GetComponent<FullRing>();
+        if (ringScript != null)
+        {
+            ringScript.PlayHaptics();
+        }
 
-            // 4. 🔥【關鍵修正】呼叫 GameStatusController 加分
-            var status = FindObjectOfType<GameStatusController>();
-            if (status != null)
-            {
-                status.OnEnemyCaptured();
-            }
-            else
-            {
-                Debug.LogWarning("找不到 GameStatusController，無法加分！");
-            }
+        // 4. Logic: Execute specific gameplay consequences (Score vs Tutorial)
+        OnContactLogic();
 
-            // 5. 銷毀物件
-            if (NetworkObject != null && NetworkObject.IsSpawned)
-                NetworkObject.Despawn();
-            else
-                Destroy(gameObject);
+        // 5. Cleanup: Despawn
+        if (NetworkObject != null && NetworkObject.IsSpawned) 
+            NetworkObject.Despawn();
+        else
+            Destroy(gameObject);
+    }
+
+    // Virtual method to be overridden by TutorialTarget
+    protected virtual void OnContactLogic()
+    {
+        // Default behavior: Add Score / Stamina
+        if (StaminaBarController.Instance != null)
+        {
+            StaminaBarController.Instance.AddStaminaServer(scoreAmount);
+        }
+        else
+        {
+            Debug.LogWarning("StaminaBarController Instance not found!");
         }
     }
 
@@ -57,7 +77,10 @@ public class SpiritDestroy : NetworkBehaviour
         {
             GameObject boom = Instantiate(explosionPrefab, position, Quaternion.identity);
             ExplosionController controller = boom.GetComponent<ExplosionController>();
-            if (controller != null) controller.Initialize(impactColor);
+            if (controller != null)
+            {
+                controller.Initialize(impactColor);
+            }
         }
 
         if (destroySound != null)
@@ -66,7 +89,8 @@ public class SpiritDestroy : NetworkBehaviour
         }
     }
 
-    private Color ConvertGameColorToUnityColor(GameColor gameColor)
+    // Helper to convert colors
+    protected Color ConvertGameColorToUnityColor(GameColor gameColor)
     {
         switch (gameColor)
         {
