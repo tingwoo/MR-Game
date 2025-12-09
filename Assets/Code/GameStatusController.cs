@@ -17,7 +17,7 @@ public class GameStatusController : NetworkBehaviour
     public float maxStamina = 100f;
     public float staminaDrainRate = 2f;  // 建議改小一點，例如 2，不然死太快
     public float staminaRecovery = 15f;
-    public int scorePerSpirit = 100;
+    public int scorePerSpirit = 1;
 
     // 遊戲數據 (自動同步)
     private NetworkVariable<float> netCurrentStamina = new NetworkVariable<float>(100f);
