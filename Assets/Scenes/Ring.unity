@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028301, g: 0.22571309, b: 0.30692127, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -136,7 +136,8 @@ GameObject:
   - component: {fileID: 28374764}
   - component: {fileID: 28374763}
   - component: {fileID: 28374766}
-  m_Layer: 5
+  - component: {fileID: 28374767}
+  m_Layer: 6
   m_Name: Canvas_Intro
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -247,6 +248,34 @@ MonoBehaviour:
     m_Bits: 4294967295
   pointer: {fileID: 0}
   sortOrder: 0
+--- !u!114 &28374767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 28374761}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee10491ef6d5d1d49a270cf6b09bdc19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _enableMipmapping: 0
+  _dynamicResolution: 1
+  _redrawResolutionThreshold: 2147483647
+  rectTransform: {fileID: 28374762}
+  maxTextureSize: 2048
+  manualRedraw: 0
+  renderInterval: 1
+  renderIntervalFrameOffset: 0
+  expensive: 0
+  layer: 5
+  opacity: 2
+  shape: 0
+  curveRadius: 1
+  overlapMask: 0
+  overlayType: 1
+  _overlayEnabled: 1
 --- !u!1 &40309816
 GameObject:
   m_ObjectHideFlags: 0
@@ -5205,7 +5234,7 @@ GameObject:
   - component: {fileID: 69528583}
   - component: {fileID: 69528582}
   - component: {fileID: 69528581}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Button_Start
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5646,7 +5675,7 @@ GameObject:
   - component: {fileID: 309585738}
   - component: {fileID: 309585740}
   - component: {fileID: 309585739}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7148,7 +7177,7 @@ GameObject:
   - component: {fileID: 857226704}
   - component: {fileID: 857226706}
   - component: {fileID: 857226705}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Image_A
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -21992,7 +22021,7 @@ GameObject:
   - component: {fileID: 2136874550}
   - component: {fileID: 2136874552}
   - component: {fileID: 2136874551}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Panel_Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
