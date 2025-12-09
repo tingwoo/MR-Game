@@ -21,9 +21,14 @@ public class RingManager : NetworkBehaviour
 
     private List<HalfRing> _pairsToRemoveCache = new List<HalfRing>();
 
+    public int PlayerCount()
+    {
+        return VRNetworkRig.ActiveRigs.Count;
+    }
+
     // Snap rings to hands
-    // 0, 1: Client Rings
-    // 2, 3: Server Rings
+    // 0, 1: Server Rings
+    // 2, 3: Client Rings
     void Start()
     {
         for (int i = 0; i < 4; i++)
@@ -44,7 +49,7 @@ public class RingManager : NetworkBehaviour
         foreach (VRNetworkRig rig in VRNetworkRig.ActiveRigs)
         {
             bool isMine = rig.OwnerClientId == NetworkManager.Singleton.LocalClientId;
-            int baseIndex = isMine ^ IsServer ? 0 : 2;
+            int baseIndex = isMine ^ IsServer ? 2 : 0;
 
             UpdateTransform(halfRingList[baseIndex], rig.rootLeftHand, true);
             UpdateTransform(halfRingList[baseIndex + 1], rig.rootRightHand, false);
